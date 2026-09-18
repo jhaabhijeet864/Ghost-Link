@@ -22,15 +22,14 @@ Modern AI-first development software lacks a native mobile remote. Simple remote
 ## Requirements
 
 ### Validated
-(None yet — ship to validate)
+- [x] Implement dual-process Windows architecture (Service + Desktop Bridge). (Validated in Phase 1)
+- [x] Implement append-only event stream data model. (Validated in Phase 1)
 
 ### Active
 - [ ] Implement Flutter mobile app with domain-driven structure.
-- [ ] Implement dual-process Windows architecture (Service + Desktop Bridge).
 - [ ] Implement capability-based adapter framework (Level 1 Native down to Level 6 Visual Automation fallback).
 - [ ] Implement intelligent command interpretation layer.
 - [ ] Implement policy and approval engine with explicit risk levels.
-- [ ] Implement append-only event stream data model.
 
 ### Out of Scope
 - Full remote desktop streaming — Replaced by structured event/task streaming and on-demand screenshots.
