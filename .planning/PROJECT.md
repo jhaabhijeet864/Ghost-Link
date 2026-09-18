@@ -1,46 +1,49 @@
 # LocalLoop
 
 ## Core Value
-A local-first mobile control panel for monitoring and safely interacting with long-running AI coding tasks on your own computer, freeing the developer from being tethered to a physical desk without compromising security.
+A developer can leave the Windows workstation, continue supervising an autonomous coding session from a Flutter mobile app, understand what the agent is doing, intervene intelligently, provide voice or text instructions, approve risky actions, inspect results, and recover from failures without touching the laptop.
 
 ## What This Is
-A secure remote control plane for local coding agents consisting of a Windows companion agent and a mobile application. It acts as an invisible digital bridge establishing an encrypted local-to-mobile tunnel. It allows developers to monitor logs, status, diffs, failures from the phone, send structured follow-up instructions, and approve sensitive actions. It uses an adapter model (e.g., CLI, IDE workflows, MCP-compatible agents) rather than brittle UI automation.
+A secure, application-aware remote control plane for AI coding environments. The phone becomes a safe command, observation, approval, and orchestration surface for the workstation. 
+
+### Architecture
+1. **Flutter Mobile Application**: A domain-driven mobile app that offers multi-workspace views (Home, Session, Workspace, Approval inbox, Command composer, Timeline, Machine view, Settings/security).
+2. **Connectivity and Relay Layer**: Supports Local network mode, Private-network mode, and Relay mode.
+3. **LocalLoop Service (Windows Orchestration Agent)**: Background service handling networking, storage, process monitoring, and policy engine (append-only event store in SQLite).
+4. **LocalLoop Desktop Bridge**: Foreground interactive session bridge that handles UI Automation, input, and visible prompts via Named Pipes IPC.
+
+### Interaction Modes
+- **Observe mode**: Read-oriented. Read logs, messages, diffs, plans, active window, screenshots on demand, and status summaries.
+- **Control mode**: Action-oriented. Send instructions, pause/resume, cancel tasks, approve/reject commands, run workflows.
 
 ## Context
-Modern AI-first development software lacks a native mobile remote, restricting the development loop to the physical workstation. This creates prototyping friction and accessibility gaps. While a phone cannot securely or reliably execute arbitrary prompts via simulated typing (which is brittle and insecure), it can effectively serve as a control plane using a capability-based protocol and adapters.
+Modern AI-first development software lacks a native mobile remote. Simple remote terminal or screen streaming approaches are brittle and lack awareness of the development context. By building a native, 4-layer architecture with a robust capability-based protocol and policy engine, we establish a dependable engineering control plane without exposing the workstation to raw remote code execution.
 
 ## Requirements
 
 ### Validated
-
 (None yet — ship to validate)
 
 ### Active
-
-- [ ] Windows companion agent that registers a local device identity.
-- [ ] Secure pairing between phone and Windows agent (e.g., QR code or one-time code).
-- [ ] Maintain named workspaces on the host.
-- [ ] Mobile client displays active tasks, status, recent logs, and git diffs.
-- [ ] Mobile client can send text follow-up commands (pause, cancel, retry, text instructions).
-- [ ] Audit log tracking every action.
-- [ ] Explicit approval mechanism for high-risk or destructive actions.
-- [ ] Mock or CLI adapter to prove the event model before IDE integrations.
+- [ ] Implement Flutter mobile app with domain-driven structure.
+- [ ] Implement dual-process Windows architecture (Service + Desktop Bridge).
+- [ ] Implement capability-based adapter framework (Level 1 Native down to Level 6 Visual Automation fallback).
+- [ ] Implement intelligent command interpretation layer.
+- [ ] Implement policy and approval engine with explicit risk levels.
+- [ ] Implement append-only event stream data model.
 
 ### Out of Scope
-
-- Full remote desktop streaming — Replaced by a structured event and task streaming protocol.
-- Universal IDE compatibility on launch — Focus on a single CLI/mock adapter first.
-- Voice transcription and execution on launch — Kept out of the MVP vertical slice to ensure reliable text-based operations first.
-- Cloud code storage or AI model hosting — Must remain local-first with zero mandatory cloud workspace.
-- Team collaboration and billing — Out of scope for MVP.
+- Full remote desktop streaming — Replaced by structured event/task streaming and on-demand screenshots.
+- Cloud code storage or AI model hosting — Must remain local-first.
+- Unconstrained shell access — Replaced by context-aware, approved actions.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Local-first with explicit approvals | Fixes the remote execution security risk while maintaining absolute data privacy | Pending |
-| Adapter architecture | UI automation is brittle; structured task/event protocol is robust and extensible | Pending |
-| Text commands first | Voice transcription adds complexity and interpretation risk; text is unambiguous for the MVP | Pending |
+| Dual-process Windows Agent | Windows service cannot reliably perform interactive UI automation. Separate network/policy from UI interaction. | Pending |
+| Event-driven Mobile App | Mobile apps face background restrictions and dropped connections. State must rebuild from events, not live open streams. | Pending |
+| 6-level Automation Hierarchy | UI Automation is brittle; prioritize native APIs and process control, using SendInput/Visual strictly as fallbacks. | Pending |
 
 ## Evolution
 
@@ -59,4 +62,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 ---
-*Last updated: 2026-09-19 after initialization*
+*Last updated: 2026-09-19 after milestone update*

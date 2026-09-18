@@ -2,36 +2,40 @@
 
 ## v1 Requirements
 
-### Architecture & Setup
-- [ ] **ARCH-01**: Windows companion agent registers a local device identity.
-- [ ] **ARCH-02**: Secure pairing between phone and Windows agent via short-lived QR code or one-time code.
-- [ ] **ARCH-03**: Maintain named workspaces on the host.
+### Windows Orchestration & Desktop Bridge
+- [ ] **WIN-01**: LocalLoop Service (Background) handles networking, storage (SQLite event store), process monitoring, and policy checks.
+- [ ] **WIN-02**: LocalLoop Desktop Bridge (Foreground) runs inside the interactive Windows user session and handles UI automation.
+- [ ] **WIN-03**: Secure IPC via Named pipes connects the Service to the Desktop Bridge.
 
-### Monitoring & Control
-- [ ] **MON-01**: Mobile client displays one active task, current phase, and recent logs.
-- [ ] **MON-02**: Mobile client displays git branch, changed files, and test results.
-- [ ] **MON-03**: Mobile client can pause, cancel, and retry the active task.
+### Mobile App (Flutter)
+- [ ] **MOB-01**: Domain-driven Flutter application architecture (core, domain, data, features).
+- [ ] **MOB-02**: **Observe Mode**: Read logs, diffs, agent messages, plans, and active workspace state.
+- [ ] **MOB-03**: **Control Mode**: Send follow-up instructions, approve/reject actions, pause/cancel tasks.
+- [ ] **MOB-04**: **Command Composer**: Process text/voice input into structured intents with constraints and risk classification.
+- [ ] **MOB-05**: Rebuild application state from an append-only event stream (offline-first state cache).
 
-### Communication & Execution
-- [ ] **EXEC-01**: Mobile client can send text follow-up commands to the Windows agent.
-- [ ] **EXEC-02**: Explicit approval mechanism for high-risk or destructive actions.
-- [ ] **EXEC-03**: Immutable audit log of every action executed.
+### Connectivity & Security
+- [ ] **NET-01**: Support Local network mode and Private-network mode (overlay network).
+- [ ] **SEC-01**: Secure pairing and device identity mechanism.
+- [ ] **SEC-02**: Policy & Approval Engine: Enforce predefined rules (e.g. `Read logs` = Allow, `Delete files` = Always ask).
+- [ ] **SEC-03**: Immutable audit record tracking all events and approvals.
 
-### Adapters
-- [ ] **ADAPT-01**: Implement a mock or local CLI adapter to prove the event model.
-- [ ] **ADAPT-02**: Implement one real adapter (e.g., local CLI process or terminal agent).
+### Adapters & Automation
+- [ ] **ADAPT-01**: Capability-based adapter framework to discover what each target application supports.
+- [ ] **ADAPT-02**: Level 2 integration: Process and terminal control (start process, capture stdout/stderr, send stdin).
+- [ ] **ADAPT-03**: Level 3 integration: Microsoft UI Automation (via FlaUI wrapper in .NET) for semantic window control.
+- [ ] **ADAPT-04**: Screenshots used strictly on-demand as evidence/fallback, not as primary visual transport.
 
 ## v2 Requirements (Deferred)
-- Voice transcription and risk classification.
-- Support for multiple active tasks.
-- Push notifications.
-- Universal IDE adapters.
-- Read-only mode.
+- External Relay connectivity mode.
+- Push notifications via native mobile platform integration.
+- Voice-only, hands-free workflows.
+- Visual automation image matching (Level 6).
 
 ## Out of Scope
-- Full remote desktop streaming — Unreliable and brittle.
-- Cloud code storage — Defeats the local-first security premise.
-- Team collaboration & billing — Focus on single-user developer experience for MVP.
+- Full remote desktop streaming (VNC-style).
+- WinAppDriver integration.
+- Broad "allow all commands" switches without policy enforcement.
 
 ## Traceability
 (To be updated during roadmap generation)
