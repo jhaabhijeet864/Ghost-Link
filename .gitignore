@@ -1,0 +1,28 @@
+## .NET / C#
+[Bb]in/
+[Oo]bj/
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+*.suo
+*.userprefs
+TestResults/
+*.trx
+
+## Flutter / Dart
+.dart_tool/
+.packages
+build/
+.pub-cache/
+.pub/
+*.apk
+*.aab
+
+## IDE & OS files
+.idea/
+.vscode/
+Thumbs.db
+[Dd]esktop.ini
+*.DS_Store
+*.log
