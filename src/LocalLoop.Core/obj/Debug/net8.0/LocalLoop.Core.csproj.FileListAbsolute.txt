@@ -1,0 +1,12 @@
+E:\Ghost-Link\src\LocalLoop.Core\bin\Debug\net8.0\LocalLoop.Core.deps.json
+E:\Ghost-Link\src\LocalLoop.Core\bin\Debug\net8.0\LocalLoop.Core.dll
+E:\Ghost-Link\src\LocalLoop.Core\bin\Debug\net8.0\LocalLoop.Core.pdb
+E:\Ghost-Link\src\LocalLoop.Core\obj\Debug\net8.0\LocalLoop.Core.GeneratedMSBuildEditorConfig.editorconfig
+E:\Ghost-Link\src\LocalLoop.Core\obj\Debug\net8.0\LocalLoop.Core.AssemblyInfoInputs.cache
+E:\Ghost-Link\src\LocalLoop.Core\obj\Debug\net8.0\LocalLoop.Core.AssemblyInfo.cs
+E:\Ghost-Link\src\LocalLoop.Core\obj\Debug\net8.0\LocalLoop.Core.csproj.CoreCompileInputs.cache
+E:\Ghost-Link\src\LocalLoop.Core\obj\Debug\net8.0\LocalLoop.Core.sourcelink.json
+E:\Ghost-Link\src\LocalLoop.Core\obj\Debug\net8.0\LocalLoop.Core.dll
+E:\Ghost-Link\src\LocalLoop.Core\obj\Debug\net8.0\refint\LocalLoop.Core.dll
+E:\Ghost-Link\src\LocalLoop.Core\obj\Debug\net8.0\LocalLoop.Core.pdb
+E:\Ghost-Link\src\LocalLoop.Core\obj\Debug\net8.0\ref\LocalLoop.Core.dll
