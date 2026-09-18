@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LocalLoop.Service")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b30a50b936f1e40a05fdd9a0da6bb6671385aeb8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0930c92babb0db5648c2290169ce0cb7625a4969")]
 [assembly: System.Reflection.AssemblyProductAttribute("LocalLoop.Service")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LocalLoop.Service")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

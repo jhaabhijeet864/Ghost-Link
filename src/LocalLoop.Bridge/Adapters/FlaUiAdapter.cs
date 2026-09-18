@@ -25,7 +25,7 @@ namespace LocalLoop.Bridge.Adapters
                 throw new Exception($"Could not find running process with name {intent.Target}");
 
             var process = processes.First();
-            var app = Application.Attach(process.Id);
+            var app = FlaUI.Core.Application.Attach(process.Id);
 
             AutomationBase automation = new UIA3Automation();
             try
