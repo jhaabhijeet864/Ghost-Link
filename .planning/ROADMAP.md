@@ -1,50 +1,60 @@
 # LocalLoop Roadmap
 
-## Proposed Roadmap
+## Milestone v1.0: Foundation & Core Control Plane (Complete)
 
-**4 phases** | **17 requirements mapped** | All v1 requirements covered ✓
+| # | Phase | Goal | Requirements | Status |
+|---|-------|------|--------------|--------|
+| 1 | Infrastructure & Event Model | Establish Windows dual-process (Service & Bridge) and SQLite event store | WIN-01, WIN-02, WIN-03 | Completed ✓ |
+| 2 | Connectivity & Mobile Observe | Implement local networking, pairing, and Flutter read-only monitoring | MOB-01, MOB-02, MOB-05, NET-01, SEC-01 | Completed ✓ |
+| 3 | Command & Control Mode | Implement command interpretation and policy engine for safe execution | MOB-03, MOB-04, SEC-02, SEC-03 | Completed ✓ |
+| 4 | Native & UI Automation Adapters | Implement process control and FlaUI adapters for live agent interaction | ADAPT-01, ADAPT-02, ADAPT-03, ADAPT-04 | Completed ✓ |
+
+---
+
+## Milestone v1.1: Mobile Companion Experience & UI Architecture (Active)
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
-| 1 | Infrastructure & Event Model | Establish Windows dual-process (Service & Bridge) and SQLite event store | WIN-01, WIN-02, WIN-03 | 3 |
-| 2 | Connectivity & Mobile Observe | Implement local networking, pairing, and Flutter read-only monitoring | MOB-01, MOB-02, MOB-05, NET-01, SEC-01 | 3 |
-| 3 | Command & Control Mode | Implement command interpretation and policy engine for safe execution | MOB-03, MOB-04, SEC-02, SEC-03 | 3 |
-| 4 | Native & UI Automation Adapters | Implement process control and FlaUI adapters for live agent interaction | ADAPT-01, ADAPT-02, ADAPT-03, ADAPT-04 | 3 |
+| 5 | Navigation Shell & Workspaces Dashboard | 5-tab navigation bar, active workstation card, status badge, multi-device switcher | UI-01, UI-02, UI-03, UI-04 | 4 |
+| 6 | Advanced Observe Surface | Filter chips, code diff viewer widget, on-demand screenshot modal | UI-05, UI-06, UI-07 | 3 |
+| 7 | Command & Approval Hardening | Voice visualizer, rich approval detail sheet with 2m timer & signed approval | UI-08, UI-09 | 2 |
+| 8 | Settings & Security Management | Device identity card, policy inspector, cryptographic key revocation | UI-10, UI-11, UI-12 | 3 |
 
-### Phase Details
+---
 
-### Phase 1: Infrastructure & Event Model
-**Goal:** Build the dual-process Windows architecture and local event storage.
-**Mode:** mvp
-**Requirements:** WIN-01, WIN-02, WIN-03
+### Phase 5: Navigation Shell & Workspaces Dashboard
+**Goal:** Establish a 5-tab application shell and full workspaces dashboard with real-time status and device switching.
+**Mode:** standard
+**Requirements:** UI-01, UI-02, UI-03, UI-04
 **Success Criteria:**
-1. Background service initializes an SQLite append-only event store.
-2. Desktop bridge launches in user session and connects via named pipe.
-3. System can read and write standard events (e.g., `session_created`).
+1. Persistent bottom navigation bar allows switching between Workspaces, Observe, Command, Approvals, and Settings tabs without losing state.
+2. Active Workstation Card displays live connection state (online/reconnecting/offline badge), hostname, active project, and ping latency.
+3. Users can switch between multiple paired workstations or pair a new device from the Workspaces tab.
+4. Manual connection dialog allows entering host IP, port, and pairing secret with real-time validation.
 
-### Phase 2: Connectivity & Mobile Observe
-**Goal:** Establish secure connection and build the Flutter mobile read-only views.
-**Mode:** mvp
-**Requirements:** MOB-01, MOB-02, MOB-05, NET-01, SEC-01
+### Phase 6: Advanced Observe Surface
+**Goal:** Deliver deep observation tools including telemetry filter chips, diff viewing, and screenshot inspection.
+**Mode:** standard
+**Requirements:** UI-05, UI-06, UI-07
 **Success Criteria:**
-1. Secure pairing sequence successfully pairs Flutter app with Windows agent over LAN.
-2. App reconstructs state from event store efficiently upon connection.
-3. User can view live logs, active workspace, and agent status on phone.
+1. Event filter chips (`All`, `Agent Logs`, `Diffs`, `Terminal Output`, `Errors`) instantly narrow down live stream telemetry.
+2. Code Diff Viewer renders additions and deletions with syntax coloring and file metadata headers.
+3. On-demand screenshot trigger captures a fresh host display and presents it in an interactive zoomable modal.
 
-### Phase 3: Command & Control Mode
-**Goal:** Build the command composer on mobile and the approval engine on Windows.
-**Mode:** mvp
-**Requirements:** MOB-03, MOB-04, SEC-02, SEC-03
+### Phase 7: Command & Approval Hardening
+**Goal:** Upgrade command formulation and high-stakes action approvals with visual countdowns and signature signing.
+**Mode:** standard
+**Requirements:** UI-08, UI-09
 **Success Criteria:**
-1. Command composer translates a complex text request into a structured JSON intent.
-2. Windows agent blocks high-risk requests based on predefined policy and prompts mobile app for approval.
-3. Audit log successfully records the command, the policy evaluation, and the user's approval.
+1. Command Composer features a voice dictation animation visualizer and structured parameter constraint inputs.
+2. Approval Inbox provides an expanded detail sheet showing full command arguments, affected files, policy classification, and a 2-minute countdown timer before expiration.
+3. One-tap approval generates an Ed25519 canonical signature envelope verified by the host service.
 
-### Phase 4: Native & UI Automation Adapters
-**Goal:** Hook the system up to real developer tools using adapters.
-**Mode:** mvp
-**Requirements:** ADAPT-01, ADAPT-02, ADAPT-03, ADAPT-04
+### Phase 8: Settings & Security Management
+**Goal:** Provide end-to-end security transparency and device pairing control.
+**Mode:** standard
+**Requirements:** UI-10, UI-11, UI-12
 **Success Criteria:**
-1. Process control adapter correctly captures output from a running CLI tool.
-2. FlaUI-based UI Automation adapter identifies and interacts with a target application window.
-3. System gracefully degrades and requests an on-demand screenshot if an automation target cannot be found.
+1. Settings screen displays Mobile Ed25519 public key fingerprint, unique device ID, and paired token info.
+2. Security policy inspector lists all permission rules (safe auto-allowed operations vs. approval-required commands).
+3. Revocation action securely purges stored cryptographic keys and pairings, resetting the app to a clean state.

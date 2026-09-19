@@ -21,15 +21,23 @@ Modern AI-first development software lacks a native mobile remote. Simple remote
 
 ## Requirements
 
-### Validated
+### Validated (Milestone v1.0)
 - [x] Implement dual-process Windows architecture (Service + Desktop Bridge). (Validated in Phase 1)
-- [x] Implement append-only event stream data model. (Validated in Phase 1)
+- [x] Implement append-only event stream data model in SQLite with WAL mode. (Validated in Phase 1)
+- [x] Implement local network discovery (mDNS Zeroconf) and pairing over WebSockets. (Validated in Phase 2)
+- [x] Implement Ed25519 cryptographic challenge-response authentication and signed envelopes. (Validated in Phase 2 & Audit)
+- [x] Implement command interpretation and policy approval engine. (Validated in Phase 3)
+- [x] Implement native and UI automation adapters (Process, FlaUI, Screenshot). (Validated in Phase 4)
 
-### Active
-- [ ] Implement Flutter mobile app with domain-driven structure.
-- [ ] Implement capability-based adapter framework (Level 1 Native down to Level 6 Visual Automation fallback).
-- [ ] Implement intelligent command interpretation layer.
-- [ ] Implement policy and approval engine with explicit risk levels.
+### Active (Milestone v1.1 - Mobile Companion Experience & UI Architecture)
+- [ ] **UI-01: 5-Tab Navigation Shell & Workspaces Dashboard**: Bottom navigation shell with Workspaces, Observe, Command, Approvals, and Settings tabs.
+- [ ] **UI-02: Workstation Status & Multi-Device Switcher**: Active workstation card with real-time connectivity badges (online/reconnecting/offline), latency, and multi-desktop switching.
+- [ ] **UI-03: Filtered Telemetry Stream**: Category filter chips for live observation (`All`, `Agent Logs`, `Diffs`, `Terminal Output`, `Errors`).
+- [ ] **UI-04: Code Diff Viewer**: Unified/split syntax-highlighted diff viewer for inspecting agent code changes.
+- [ ] **UI-05: On-Demand Screenshot Previewer**: Interactive visual previewer for host screenshots captured via `ScreenshotAdapter`.
+- [ ] **UI-06: Enhanced Command Composer & Voice Visualizer**: Intent builder with voice recording waveform animation and structured parameter constraints.
+- [ ] **UI-07: Rich Approval Detail Sheet**: Expanded sheet with 2-minute countdown timer, risk classification breakdown, and one-tap Ed25519 signed approval.
+- [ ] **UI-08: Settings & Security Inspector**: Device identity card (Ed25519 fingerprint), security policy inspector, and instant pairing revocation.
 
 ### Out of Scope
 - Full remote desktop streaming — Replaced by structured event/task streaming and on-demand screenshots.
