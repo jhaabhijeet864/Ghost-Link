@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../core/models/active_agent_session.dart';
 import '../../core/network/websocket_client.dart';
-import '../command/widgets/voice_dictation_modal.dart';
+
 
 // Activity items model
 class AgentActivityItem {
@@ -685,19 +685,6 @@ class _ControlRoomScreenState extends State<ControlRoomScreen> {
         children: [
           IconButton(
             icon: const Icon(Icons.mic, color: Color(0xFF00E676)),
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => VoiceDictationModal(
-                  onTranscriptConfirmed: (text) {
-                    _promptController.text = text;
-                  },
-                ),
-              );
-            },
-          ),
           Expanded(
             child: TextField(
               controller: _promptController,
