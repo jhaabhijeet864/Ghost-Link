@@ -102,7 +102,7 @@ void main() {
       expect(find.text('Low'), findsOneWidget);
       expect(find.text('Medium'), findsOneWidget);
       expect(find.text('High'), findsOneWidget);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
     });
   });
 
@@ -126,7 +126,7 @@ void main() {
       expect(find.text('Approval Inbox'), findsOneWidget);
       expect(find.text('No Pending Approvals'), findsOneWidget);
       expect(find.text('You have no actions waiting for your review.'), findsOneWidget);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
     });
 
     testWidgets('shows connection status indicator', (WidgetTester tester) async {
@@ -146,7 +146,7 @@ void main() {
       await tester.idle();
 
       expect(find.byIcon(Icons.wifi_off), findsOneWidget);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
     });
 
     testWidgets('shows history button in app bar', (WidgetTester tester) async {
