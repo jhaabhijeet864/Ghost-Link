@@ -1,5 +1,7 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SavedDevice {
   final String id;
@@ -43,8 +45,35 @@ class DeviceManager {
   final _storage = const FlutterSecureStorage();
   static const _devicesKey = 'saved_devices';
 
+  Future<String?> _read(String key) async {
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(key);
+    }
+    try {
+      return await _storage.read(key: key);
+    } catch (_) {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(key);
+    }
+  }
+
+  Future<void> _write(String key, String value) async {
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(key, value);
+      return;
+    }
+    try {
+      await _storage.write(key: key, value: value);
+    } catch (_) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(key, value);
+    }
+  }
+
   Future<List<SavedDevice>> getSavedDevices() async {
-    final str = await _storage.read(key: _devicesKey);
+    final str = await _read(_devicesKey);
     if (str == null) return [];
 
     try {
@@ -65,7 +94,7 @@ class DeviceManager {
       devices.add(device);
     }
 
-    await _storage.write(key: _devicesKey, value: jsonEncode(devices.map((d) => d.toJson()).toList()));
+    await _write(_devicesKey, jsonEncode(devices.map((d) => d.toJson()).toList()));
   }
 
   Future<void> updateDeviceAddress(String id, String newIp, String newPort) async {
@@ -75,13 +104,13 @@ class DeviceManager {
       devices[index].ip = newIp;
       devices[index].port = newPort;
       devices[index].lastConnected = DateTime.now();
-      await _storage.write(key: _devicesKey, value: jsonEncode(devices.map((d) => d.toJson()).toList()));
+      await _write(_devicesKey, jsonEncode(devices.map((d) => d.toJson()).toList()));
     }
   }
 
   Future<void> removeDevice(String id) async {
     final devices = await getSavedDevices();
     devices.removeWhere((d) => d.id == id);
-    await _storage.write(key: _devicesKey, value: jsonEncode(devices.map((d) => d.toJson()).toList()));
+    await _write(_devicesKey, jsonEncode(devices.map((d) => d.toJson()).toList()));
   }
 }

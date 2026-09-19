@@ -22,7 +22,7 @@ namespace LocalLoop.Service
         private readonly IAuditLogger _auditLogger;
         private readonly WebSocketServer _webSocketServer;
         private readonly PairingManager _pairingManager;
-        private const string PipeName = "LocalLoop_ControlPipe";
+        private readonly string _pipeName;
 
         private readonly Dictionary<string, TaskCompletionSource<IpcMessage>> _pendingApprovals = new();
         private readonly SemaphoreSlim _approvalsLock = new(1, 1);
@@ -33,7 +33,8 @@ namespace LocalLoop.Service
             IPolicyEngine policyEngine,
             IAuditLogger auditLogger,
             WebSocketServer webSocketServer,
-            PairingManager pairingManager)
+            PairingManager pairingManager,
+            string pipeName = "LocalLoop_ControlPipe")
         {
             _logger = logger;
             _repository = new EventRepository();
@@ -42,6 +43,7 @@ namespace LocalLoop.Service
             _auditLogger = auditLogger;
             _webSocketServer = webSocketServer;
             _pairingManager = pairingManager;
+            _pipeName = pipeName;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -69,13 +71,13 @@ namespace LocalLoop.Service
                 try
                 {
                     var pipeServer = new NamedPipeServerStream(
-                        PipeName,
+                        _pipeName,
                         PipeDirection.InOut,
                         NamedPipeServerStream.MaxAllowedServerInstances,
                         PipeTransmissionMode.Byte,
                         PipeOptions.Asynchronous);
 
-                    _logger.LogInformation("Waiting for Desktop Bridge connection on pipe '{PipeName}'...", PipeName);
+                    _logger.LogInformation("Waiting for Desktop Bridge connection on pipe '{PipeName}'...", _pipeName);
                     await pipeServer.WaitForConnectionAsync(stoppingToken);
                     _logger.LogInformation("Desktop Bridge connected!");
 

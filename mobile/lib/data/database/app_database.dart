@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
@@ -8,8 +9,12 @@ class AppDatabase {
   AppDatabase._internal();
 
   Database? _database;
+  final List<Map<String, dynamic>> _webEvents = [];
+  final List<Map<String, dynamic>> _webCommandHistory = [];
+  final List<Map<String, dynamic>> _webApprovalHistory = [];
 
-  Future<Database> get database async {
+  Future<Database?> get database async {
+    if (kIsWeb) return null;
     if (_database != null) return _database!;
     _database = await _initDb();
     return _database!;
@@ -87,8 +92,12 @@ class AppDatabase {
   }
 
   Future<void> insertEvent(Map<String, dynamic> event) async {
+    if (kIsWeb) {
+      _webEvents.insert(0, event);
+      return;
+    }
     final db = await database;
-    await db.insert('events', {
+    await db?.insert('events', {
       'id': event['id'],
       'session_id': event['session_id'],
       'type': event['type'],
@@ -99,7 +108,12 @@ class AppDatabase {
 
   Future<void> insertEventsBatch(List<Map<String, dynamic>> items) async {
     if (items.isEmpty) return;
+    if (kIsWeb) {
+      _webEvents.insertAll(0, items);
+      return;
+    }
     final db = await database;
+    if (db == null) return;
     final batch = db.batch();
     for (final event in items) {
       batch.insert('events', {
@@ -114,13 +128,19 @@ class AppDatabase {
   }
 
   Future<List<Map<String, dynamic>>> getEvents() async {
+    if (kIsWeb) return List.unmodifiable(_webEvents);
     final db = await database;
+    if (db == null) return [];
     return await db.query('events', orderBy: 'id DESC');
   }
 
   Future<void> insertCommandHistory(Map<String, dynamic> command) async {
+    if (kIsWeb) {
+      _webCommandHistory.insert(0, command);
+      return;
+    }
     final db = await database;
-    await db.insert('command_history', {
+    await db?.insert('command_history', {
       'device_id': command['deviceId'],
       'intent_id': command['intentId'],
       'input': command['input'],
@@ -134,7 +154,11 @@ class AppDatabase {
   }
 
   Future<List<Map<String, dynamic>>> getCommandHistory(String deviceId) async {
+    if (kIsWeb) {
+      return _webCommandHistory.where((c) => c['deviceId'] == deviceId || c['device_id'] == deviceId).toList();
+    }
     final db = await database;
+    if (db == null) return [];
     return await db.query(
       'command_history',
       where: 'device_id = ?',
@@ -145,8 +169,12 @@ class AppDatabase {
   }
 
   Future<void> insertApprovalHistory(Map<String, dynamic> approval) async {
+    if (kIsWeb) {
+      _webApprovalHistory.insert(0, approval);
+      return;
+    }
     final db = await database;
-    await db.insert('approval_history', {
+    await db?.insert('approval_history', {
       'device_id': approval['deviceId'],
       'intent_id': approval['intentId'],
       'action': approval['action'],
@@ -159,7 +187,11 @@ class AppDatabase {
   }
 
   Future<List<Map<String, dynamic>>> getApprovalHistory(String deviceId) async {
+    if (kIsWeb) {
+      return _webApprovalHistory.where((a) => a['deviceId'] == deviceId || a['device_id'] == deviceId).toList();
+    }
     final db = await database;
+    if (db == null) return [];
     return await db.query(
       'approval_history',
       where: 'device_id = ?',

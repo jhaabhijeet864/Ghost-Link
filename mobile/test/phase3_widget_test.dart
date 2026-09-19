@@ -1,13 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:mockito/annotations.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:local_loop/features/command/command_composer_screen.dart';
 import 'package:local_loop/features/command/approval_inbox_screen.dart';
-import 'package:local_loop/core/network/websocket_client.dart';
 
-@GenerateMocks([WebSocketClient])
 void main() {
   setUpAll(() {
     sqfliteFfiInit();
@@ -95,14 +92,12 @@ void main() {
           ),
         ),
       );
-      await tester.pump();
-      await tester.idle();
+      await tester.pumpAndSettle(const Duration(seconds: 5));
 
       expect(find.text('Risk Level Guide'), findsOneWidget);
       expect(find.text('Low'), findsOneWidget);
       expect(find.text('Medium'), findsOneWidget);
       expect(find.text('High'), findsOneWidget);
-      await tester.pump(const Duration(seconds: 1));
     });
   });
 
