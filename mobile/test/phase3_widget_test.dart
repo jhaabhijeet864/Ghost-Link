@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
-import 'lib/features/command/command_composer_screen.dart';
-import 'lib/features/command/approval_inbox_screen.dart';
-import 'lib/core/network/websocket_client.dart';
+import 'package:local_loop/features/command/command_composer_screen.dart';
+import 'package:local_loop/features/command/approval_inbox_screen.dart';
+import 'package:local_loop/core/network/websocket_client.dart';
 
 @GenerateMocks([WebSocketClient])
 void main() {
@@ -177,7 +177,7 @@ void main() {
 
   group('ApprovalItem Risk Levels', () {
     test('Low risk approval item has green color', () {
-      const item = ApprovalItem(
+      final item = ApprovalItem(
         id: '1',
         action: 'read',
         target: 'logs',
@@ -191,7 +191,7 @@ void main() {
     });
 
     test('Medium risk approval item has orange color', () {
-      const item = ApprovalItem(
+      final item = ApprovalItem(
         id: '1',
         action: 'restart',
         target: 'service',
@@ -205,7 +205,7 @@ void main() {
     });
 
     test('High risk approval item has red color', () {
-      const item = ApprovalItem(
+      final item = ApprovalItem(
         id: '1',
         action: 'delete',
         target: 'file',

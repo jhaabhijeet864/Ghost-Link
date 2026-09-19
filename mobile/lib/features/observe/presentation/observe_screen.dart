@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/network/websocket_client.dart';
-import '../../data/database/app_database.dart';
+import 'package:local_loop/core/network/websocket_client.dart';
+import 'package:local_loop/data/database/app_database.dart';
 
 class ObserveScreen extends ConsumerStatefulWidget {
   final String? token;

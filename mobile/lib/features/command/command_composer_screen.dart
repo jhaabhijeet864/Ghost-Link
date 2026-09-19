@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/network/websocket_client.dart';
-import '../../data/database/app_database.dart';
+import 'package:local_loop/core/network/websocket_client.dart';
+import 'package:local_loop/data/database/app_database.dart';
 
 final quickActionsProvider = Provider<List<QuickAction>>((ref) => [
   QuickAction(
@@ -290,7 +290,7 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: quickActionsProvider(ref).map((action) => 
+                    children: ref.watch(quickActionsProvider).map((action) => 
                       ActionChip(
                         avatar: Icon(action.icon, size: 18),
                         label: Text(action.label),
@@ -354,7 +354,7 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
     );
   }
 
-  Widget _buildRiskChip(String label, Color color, String description) {
+  Widget _buildRiskChip(String label, MaterialColor color, String description) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
