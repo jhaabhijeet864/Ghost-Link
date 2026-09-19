@@ -56,6 +56,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/session/:id',
         builder: (context, state) => SessionDetailScreen(
           sessionId: state.pathParameters['id']!,
+          title: 'Agent Session', // Added title parameter
         ),
       ),
     ],
@@ -80,6 +81,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   Widget build(BuildContext context) {
     final screens = [
       const HomeScreen(),
+      const SessionsListScreen(),
+      MachinesListScreen(
+        onNavigateTab: _onDestinationSelected, // Temporary until routing is fully implemented
+      ),
       WorkspacesDashboardScreen(
         onNavigateTab: _onDestinationSelected, // Temporary until routing is fully implemented
       ),

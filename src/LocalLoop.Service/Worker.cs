@@ -244,6 +244,15 @@ namespace LocalLoop.Service
                         }
                     }
                     break;
+                case "get_machines":
+                    await HandleGetMachines();
+                    break;
+                case "get_workspaces":
+                    await HandleGetWorkspaces();
+                    break;
+                case "get_sessions":
+                    await HandleGetSessions();
+                    break;
             }
         }
 
@@ -497,7 +506,9 @@ namespace LocalLoop.Service
                         }
 
                         var approvalRequest = IpcMessageFactory.CreateApprovalRequest(intent, message.CorrelationId);
-                        await writer.WriteLineAsync(JsonSerializer.Serialize(approvalRequest));
+                        var serializedApproval = JsonSerializer.Serialize(approvalRequest);
+                        await writer.WriteLineAsync(serializedApproval);
+                        await _webSocketServer.BroadcastAsync(serializedApproval);
 
                         try
                         {
@@ -590,6 +601,62 @@ namespace LocalLoop.Service
             {
                 _logger.LogError(ex, "Error handling approval response");
             }
+        }
+
+        private async Task HandleGetMachines()
+        {
+            var machines = new[]
+            {
+                new 
+                {
+                    id = Environment.MachineName,
+                    name = Environment.MachineName,
+                    status = "online",
+                    lastSeen = DateTime.UtcNow.ToString("O"),
+                    osInfo = Environment.OSVersion.ToString(),
+                    cpuArchitecture = System.Runtime.InteropServices.RuntimeInformation.OSArchitecture.ToString()
+                }
+            };
+            var msg = new { type = "machines_list", data = machines };
+            await _webSocketServer.BroadcastAsync(JsonSerializer.Serialize(msg));
+        }
+
+        private async Task HandleGetWorkspaces()
+        {
+            var currentDir = Environment.CurrentDirectory;
+            var workspaces = new[]
+            {
+                new 
+                {
+                    id = currentDir.GetHashCode().ToString(),
+                    name = Path.GetFileName(currentDir) ?? "Workspace",
+                    path = currentDir,
+                    branch = "main",
+                    hasUncommittedChanges = false,
+                    lastAccessed = DateTime.UtcNow.ToString("O")
+                }
+            };
+            var msg = new { type = "workspaces_list", data = workspaces };
+            await _webSocketServer.BroadcastAsync(JsonSerializer.Serialize(msg));
+        }
+
+        private async Task HandleGetSessions()
+        {
+            var sessions = new[]
+            {
+                new 
+                {
+                    sessionId = Guid.NewGuid().ToString(),
+                    agentType = "Claude",
+                    status = "Running",
+                    startTime = DateTime.UtcNow.ToString("O"),
+                    workingDirectory = Environment.CurrentDirectory,
+                    title = "Ghost-Link E2E Verification",
+                    model = "claude-3-5-sonnet"
+                }
+            };
+            var msg = new { type = "sessions_list", data = sessions };
+            await _webSocketServer.BroadcastAsync(JsonSerializer.Serialize(msg));
         }
 
         private class ApprovalResponse

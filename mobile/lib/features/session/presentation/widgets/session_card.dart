@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_radii.dart';
+import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/status_icon.dart';
 
 class SessionCard extends StatelessWidget {
@@ -29,51 +28,141 @@ class SessionCard extends StatelessWidget {
     required this.onTap,
   });
 
+  Color _getStatusColor() {
+    switch (statusType) {
+      case StatusType.success:
+        return AppColors.success;
+      case StatusType.warning:
+        return AppColors.warning;
+      case StatusType.danger:
+        return AppColors.danger;
+      case StatusType.info:
+      default:
+        return AppColors.accentLight;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.standard),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.standard),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    final statusColor = _getStatusColor();
+
+    return GlassCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: AppTypography.cardTitle,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.25)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: statusColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      statusText.toUpperCase(),
+                      style: AppTypography.caption.copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 10,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: AppSpacing.micro),
               Row(
                 children: [
-                  StatusIcon(type: statusType, size: 14),
-                  const SizedBox(width: AppSpacing.micro),
+                  const Icon(Icons.schedule_rounded, size: 13, color: AppColors.textMuted),
+                  const SizedBox(width: 4),
                   Text(
-                    '$statusText · $duration',
-                    style: AppTypography.caption,
+                    lastUpdate,
+                    style: AppTypography.caption.copyWith(color: AppColors.textMuted),
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.small),
-              Text(
-                '$workspace · $branch',
-                style: AppTypography.secondary,
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: AppTypography.sectionTitle.copyWith(
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePressed,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.fork_right_rounded, size: 12, color: AppColors.textSecondary),
+                    const SizedBox(width: 3),
+                    Text(
+                      branch,
+                      style: AppTypography.caption.copyWith(
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: AppSpacing.micro),
-              Text(
-                currentActivity,
-                style: AppTypography.body,
-              ),
-              const SizedBox(height: AppSpacing.small),
-              Text(
-                'Last update $lastUpdate',
-                style: AppTypography.caption,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  workspace,
+                  style: AppTypography.caption.copyWith(color: AppColors.textMuted),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
-        ),
+          if (currentActivity.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF080B10),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Text(
+                currentActivity,
+                style: AppTypography.code.copyWith(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

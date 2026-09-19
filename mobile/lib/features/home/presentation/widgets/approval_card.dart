@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_radii.dart';
-import '../../../../core/widgets/status_badge.dart';
-import '../../../../core/widgets/status_icon.dart';
+import '../../../../core/widgets/glass_card.dart';
 
 class ApprovalCard extends StatefulWidget {
   final String title;
@@ -29,104 +26,140 @@ class ApprovalCard extends StatefulWidget {
 }
 
 class _ApprovalCardState extends State<ApprovalCard> {
-  bool _isHolding = false;
-  
-  void _handleHoldStart(TapDownDetails details) {
-    setState(() => _isHolding = true);
-    // In a real implementation, we'd start a timer for face ID / long press
-  }
-
-  void _handleHoldEnd(TapUpDetails details) {
-    setState(() => _isHolding = false);
-    widget.onApprove();
-  }
-  
-  void _handleHoldCancel() {
-    setState(() => _isHolding = false);
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.standard),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const StatusBadge(
-                  label: 'Needs approval',
-                  type: StatusType.warning,
-                  icon: Icons.shield,
+    return GlassCard(
+      glowColor: AppColors.warning,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
                 ),
-                Text(
-                  widget.time,
-                  style: AppTypography.caption,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.small),
-            Text(
-              widget.title,
-              style: AppTypography.cardTitle,
-            ),
-            const SizedBox(height: AppSpacing.micro),
-            Text(
-              '${widget.workspace} · ${widget.machine}',
-              style: AppTypography.secondary,
-            ),
-            const SizedBox(height: AppSpacing.standard),
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.small),
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.circular(AppRadii.compact),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: const Text(
-                'High Risk Action', // Example content
-                style: AppTypography.code,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.standard),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: widget.onReject,
-                    child: const Text('Reject'),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.standard),
-                Expanded(
-                  child: GestureDetector(
-                    onTapDown: _handleHoldStart,
-                    onTapUp: _handleHoldEnd,
-                    onTapCancel: _handleHoldCancel,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: _isHolding ? AppColors.success : AppColors.surfacePressed,
-                        borderRadius: BorderRadius.circular(AppRadii.button),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Hold to Approve',
-                        style: AppTypography.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: _isHolding ? AppColors.background : AppColors.textPrimary,
-                        ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.shield_rounded, size: 14, color: AppColors.warning),
+                    const SizedBox(width: 5),
+                    Text(
+                      'NEEDS APPROVAL',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.warning,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 10,
+                        letterSpacing: 0.5,
                       ),
                     ),
+                  ],
+                ),
+              ),
+              Row(
+                children: [
+                  const Icon(Icons.timer_outlined, size: 13, color: AppColors.textMuted),
+                  const SizedBox(width: 4),
+                  Text(
+                    widget.time,
+                    style: AppTypography.caption.copyWith(color: AppColors.textMuted),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            widget.title,
+            style: AppTypography.sectionTitle.copyWith(
+              fontWeight: FontWeight.w700,
+              fontSize: 17,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.folder_open_rounded, size: 14, color: AppColors.textMuted),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  '${widget.workspace} • ${widget.machine}',
+                  style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF070A0F),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.terminal_rounded, size: 14, color: AppColors.accentLight),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: AppTypography.code.copyWith(
+                      fontSize: 12,
+                      color: AppColors.accentCyan,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: widget.onReject,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.danger,
+                    side: const BorderSide(color: AppColors.danger),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Reject', style: TextStyle(fontWeight: FontWeight.w600)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: widget.onApprove,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.touch_app_rounded, size: 16),
+                      SizedBox(width: 6),
+                      Text('Review & Hold', style: TextStyle(fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

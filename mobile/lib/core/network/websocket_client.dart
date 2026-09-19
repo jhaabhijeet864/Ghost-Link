@@ -245,6 +245,13 @@ class WebSocketClient {
     _channel?.sink.add(jsonEncode(envelope));
   }
 
+  void sendDataRequest(String type) {
+    _channel?.sink.add(jsonEncode({
+      'type': type,
+      'data': ''
+    }));
+  }
+
   Future<void> sendApprovalResponse(Map<String, dynamic> response) async {
     final envelope = await _signedEnvelope.seal('approval_response', response);
     _channel?.sink.add(jsonEncode(envelope));
