@@ -24,19 +24,19 @@ class StatusBadge extends StatelessWidget {
 
     switch (type) {
       case StatusType.success:
-        bgColor = AppColors.success.withOpacity(0.15);
+        bgColor = AppColors.success.withValues(alpha: 0.15);
         fgColor = AppColors.success;
         break;
       case StatusType.warning:
-        bgColor = AppColors.warning.withOpacity(0.15);
+        bgColor = AppColors.warning.withValues(alpha: 0.15);
         fgColor = AppColors.warning;
         break;
       case StatusType.danger:
-        bgColor = AppColors.danger.withOpacity(0.15);
+        bgColor = AppColors.danger.withValues(alpha: 0.15);
         fgColor = AppColors.danger;
         break;
       case StatusType.info:
-        bgColor = AppColors.info.withOpacity(0.15);
+        bgColor = AppColors.info.withValues(alpha: 0.15);
         fgColor = AppColors.info;
         break;
       case StatusType.neutral:

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -63,6 +64,23 @@ class HomeScreen extends ConsumerWidget {
               style: AppTypography.secondary,
             ),
           ),
+        ),
+
+        const SizedBox(height: AppSpacing.large),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Machines',
+              style: AppTypography.sectionTitle,
+            ),
+            TextButton(
+              onPressed: () {
+                context.push('/machines');
+              },
+              child: const Text('See all'),
+            ),
+          ],
         ),
       ],
     );

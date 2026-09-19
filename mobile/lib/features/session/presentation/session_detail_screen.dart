@@ -4,6 +4,13 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_scaffold.dart';
+import 'widgets/terminal_tab.dart';
+import 'widgets/diff_tab.dart';
+import 'widgets/tests_tab.dart';
+import 'widgets/files_tab.dart';
+import 'widgets/plan_tab.dart';
+import 'widgets/timeline_tab.dart';
+import 'widgets/evidence_tab.dart';
 
 class SessionDetailScreen extends ConsumerStatefulWidget {
   final String sessionId;
@@ -131,14 +138,14 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen>
         controller: _tabController,
         children: [
           _buildOverviewTab(),
-          const Center(child: Text('Plan Tab (Batch 3)')),
+          const PlanTab(),
           _buildActivityTab(),
-          const Center(child: Text('Files Tab (Batch 3)')),
-          const Center(child: Text('Tests Tab (Batch 3)')),
-          const Center(child: Text('Diff Tab (Batch 3)')),
-          const Center(child: Text('Terminal Tab (Batch 3)')),
-          const Center(child: Text('Timeline Tab (Batch 3)')),
-          const Center(child: Text('Evidence Tab (Batch 3)')),
+          const FilesTab(),
+          const TestsTab(),
+          const DiffTab(),
+          const TerminalTab(),
+          const TimelineTab(),
+          const EvidenceTab(),
         ],
       ),
     );

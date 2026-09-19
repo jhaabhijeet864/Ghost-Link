@@ -15,4 +15,5 @@ class AppColors {
   static const danger = Color(0xFFF06C73);
   static const info = Color(0xFF61B7E8);
   static const neutral = Color(0xFF8794A1);
+  static const primary = accent;
 }

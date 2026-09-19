@@ -25,7 +25,7 @@ class SkeletonCard extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(seconds: 1),
           // Simplified skeleton for now without animation package dependency
-          color: AppColors.border.withOpacity(0.5),
+          color: AppColors.border.withValues(alpha: 0.5),
         ),
       ),
     );

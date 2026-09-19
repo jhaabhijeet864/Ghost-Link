@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/workspaces/presentation/workspaces_dashboard_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
+import '../../features/machines/presentation/machines_list_screen.dart';
+import '../../features/machines/presentation/machine_detail_screen.dart';
+import '../../features/pairing/presentation/pairing_flow_screen.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/app_bottom_navigation.dart';
 
@@ -14,6 +17,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         builder: (context, state) => const MainNavigationShell(),
+      ),
+      GoRoute(
+        path: '/machines',
+        builder: (context, state) => MachinesListScreen(
+          onNavigateTab: (idx) {}, // dummy callback
+        ),
+      ),
+      GoRoute(
+        path: '/machine/:id',
+        builder: (context, state) => MachineDetailScreen(
+          machineId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/pairing',
+        builder: (context, state) => const PairingFlowScreen(),
       ),
     ],
   );

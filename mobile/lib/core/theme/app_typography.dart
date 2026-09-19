@@ -55,10 +55,18 @@ class AppTypography {
 
   static const TextStyle caption = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 12,
-    height: 16 / 12,
+    fontSize: 12.0,
     fontWeight: FontWeight.w400,
-    color: AppColors.textMuted,
+    color: AppColors.textSecondary,
+    height: 1.33,
+  );
+
+  static const TextStyle button = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 14.0,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+    letterSpacing: 0.5,
   );
 
   static const TextStyle code = TextStyle(

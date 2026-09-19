@@ -225,7 +225,7 @@ class _ObserveScreenState extends ConsumerState<ObserveScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xFF090A0C).withOpacity(0.2) : const Color(0xFF2A2E39),
+                              color: isSelected ? const Color(0xFF090A0C).withValues(alpha: 0.2) : const Color(0xFF2A2E39),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(

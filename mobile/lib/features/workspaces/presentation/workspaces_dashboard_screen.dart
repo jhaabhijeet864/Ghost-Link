@@ -4,7 +4,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/app_spacing.dart';
 import 'widgets/workspace_card.dart';
-import 'widgets/active_workstation_card.dart';
 
 class WorkspacesDashboardScreen extends ConsumerStatefulWidget {
   final Function(int) onNavigateTab;
@@ -86,11 +85,17 @@ class _WorkspacesDashboardScreenState
 
         const SizedBox(height: AppSpacing.standard),
 
-        // Active Workstation Header (legacy code compatibility, should be extracted to Machine card eventually)
+        // Active Workstation Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.standard),
-          child: ActiveWorkstationCard(
-            onOpenControlRoom: () => widget.onNavigateTab(0),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.standard),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceElevated,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text('Active Machine: Rajesh-Workstation', style: AppTypography.body),
           ),
         ),
 

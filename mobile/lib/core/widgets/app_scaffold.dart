@@ -10,6 +10,8 @@ class AppScaffold extends StatelessWidget {
   final Widget? bottomNavigationBar;
   final Widget? floatingActionButton;
   final FloatingActionButtonLocation? floatingActionButtonLocation;
+  final bool showBackButton;
+  final VoidCallback? onBack;
 
   const AppScaffold({
     super.key,
@@ -19,6 +21,8 @@ class AppScaffold extends StatelessWidget {
     this.bottomNavigationBar,
     this.floatingActionButton,
     this.floatingActionButtonLocation,
+    this.showBackButton = false,
+    this.onBack,
   });
 
   @override
@@ -34,6 +38,13 @@ class AppScaffold extends StatelessWidget {
               ),
               actions: actions,
               elevation: 0,
+              automaticallyImplyLeading: showBackButton,
+              leading: showBackButton 
+                  ? BackButton(
+                      color: AppColors.textPrimary,
+                      onPressed: onBack ?? () => Navigator.of(context).pop(),
+                    )
+                  : null,
             )
           : null,
       body: SafeArea(

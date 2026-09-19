@@ -78,7 +78,7 @@ class _CodeDiffViewerState extends State<CodeDiffViewer> {
                       decoration: BoxDecoration(
                         color: const Color(0xFF0D2117),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: const Color(0xFF00E676).withOpacity(0.3)),
+                        border: Border.all(color: const Color(0xFF00E676).withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         '+$addedCount',
@@ -96,7 +96,7 @@ class _CodeDiffViewerState extends State<CodeDiffViewer> {
                       decoration: BoxDecoration(
                         color: const Color(0xFF2A0D0D),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: const Color(0xFFFF3D00).withOpacity(0.3)),
+                        border: Border.all(color: const Color(0xFFFF3D00).withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         '-$deletedCount',
