@@ -315,7 +315,7 @@ namespace LocalLoop.Service
             }
         }
 
-        private async Task HandleMessageAsync(string messageLine, StreamWriter writer, CancellationToken stoppingToken)
+        internal virtual async Task HandleMessageAsync(string messageLine, StreamWriter writer, CancellationToken stoppingToken)
         {
             try
             {

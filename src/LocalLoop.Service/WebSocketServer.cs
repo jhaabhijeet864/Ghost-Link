@@ -25,7 +25,7 @@ namespace LocalLoop.Service
             _logger = logger;
         }
 
-        public async Task StartAsync(int port)
+        public virtual async Task StartAsync(int port)
         {
             HttpListener? httpListener = null;
             try
@@ -216,7 +216,7 @@ namespace LocalLoop.Service
             _connections.TryRemove(connectionId, out _);
         }
 
-        public async Task BroadcastAsync(string message)
+        public virtual async Task BroadcastAsync(string message)
         {
             var bytes = Encoding.UTF8.GetBytes(message);
             var segment = new ArraySegment<byte>(bytes);
