@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import '../security/crypto_manager.dart';
 import '../../data/database/isolate_worker.dart';
 import 'signed_envelope.dart';
@@ -25,6 +26,10 @@ class WebSocketClient {
   Stream<Map<String, dynamic>> get messageStream => _messageController.stream;
   Stream<Map<String, dynamic>> get approvalStream => _approvalController.stream;
 
+  final ValueNotifier<int?> latencyNotifier = ValueNotifier<int?>(null);
+  String? _activeMachineName;
+  String? get activeMachineName => _activeMachineName;
+
   Timer? _heartbeatTimer;
   Timer? _reconnectTimer;
   int _reconnectAttempts = 0;
@@ -33,6 +38,14 @@ class WebSocketClient {
   String? _lastPort;
   String? _lastPairingSecret;
   void Function(String newIp, String newPort)? _onEndpointResolved;
+
+  void _setStatus(ConnectionStatus status) {
+    _status = status;
+    if (status != ConnectionStatus.connected) {
+      latencyNotifier.value = null;
+    }
+    _statusController.add(status);
+  }
 
   Future<({String ip, String port, String? machineName})?> _discoverEndpoint(String serviceName) async {
     const String name = '_localloop._tcp.local';
@@ -91,6 +104,7 @@ class WebSocketClient {
       if (endpoint != null) {
         targetIp = endpoint.ip;
         targetPort = endpoint.port;
+        _activeMachineName = endpoint.machineName;
         resolvedViaMdns = true;
         uri = _buildUri(targetIp, targetPort, publicKey, _lastPairingSecret);
         try {
@@ -133,7 +147,11 @@ class WebSocketClient {
               authCompleter.complete();
             }
           } else if (type == 'pong') {
-            // Heartbeat response
+            final sentTime = data['timestamp'] as int?;
+            if (sentTime != null) {
+              final rtt = DateTime.now().millisecondsSinceEpoch - sentTime;
+              latencyNotifier.value = rtt >= 0 ? rtt : 0;
+            }
           } else {
             // Normal message routing
             if (type == 'approval_request') {
@@ -192,10 +210,15 @@ class WebSocketClient {
     });
   }
 
-  void _setStatus(ConnectionStatus s) {
-    _status = s;
-    _statusController.add(s);
+  void disconnect() {
+    _reconnectTimer?.cancel();
+    _heartbeatTimer?.cancel();
+    _socket?.close();
+    _socket = null;
+    _setStatus(ConnectionStatus.disconnected);
+    latencyNotifier.value = null;
   }
+
 
   Uri _buildUri(String ip, String port, String publicKey, String? pairingSecret) {
     var uriStr = 'ws://$ip:$port?publicKey=${Uri.encodeQueryComponent(publicKey)}';
@@ -215,7 +238,7 @@ class WebSocketClient {
     _socket?.add(jsonEncode(envelope));
   }
 
-  void disconnect() {
+  void dispose() {
     _heartbeatTimer?.cancel();
     _reconnectTimer?.cancel();
     _socket?.close();

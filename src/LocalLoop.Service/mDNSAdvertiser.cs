@@ -13,9 +13,9 @@ namespace LocalLoop.Service
     public class mDNSAdvertiser : BackgroundService
     {
         private readonly ILogger<mDNSAdvertiser> _logger;
-        private MulticastService _mdns;
-        private ServiceDiscovery _serviceDiscovery;
-        private ServiceProfile _profile;
+        private MulticastService? _mdns;
+        private ServiceDiscovery? _serviceDiscovery;
+        private ServiceProfile? _profile;
 
         public mDNSAdvertiser(ILogger<mDNSAdvertiser> logger)
         {
