@@ -1,16 +1,22 @@
 using System;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using LocalLoop.Core;
 
 namespace LocalLoop.Service
 {
     public class WebSocketServer
     {
         private readonly PairingManager _pairingManager;
-        
+        private readonly ConcurrentDictionary<string, WebSocket> _connections = new();
+
+        public event Func<string, Task>? MessageReceived;
+
         public WebSocketServer(PairingManager pairingManager)
         {
             _pairingManager = pairingManager;
@@ -38,7 +44,11 @@ namespace LocalLoop.Service
                     }
 
                     var webSocketContext = await context.AcceptWebSocketAsync(null);
-                    _ = HandleConnectionAsync(webSocketContext.WebSocket);
+                    var socket = webSocketContext.WebSocket;
+                    var connectionId = Guid.NewGuid().ToString();
+                    _connections[connectionId] = socket;
+                    
+                    _ = HandleConnectionAsync(connectionId, socket);
                 }
                 else
                 {
@@ -48,22 +58,61 @@ namespace LocalLoop.Service
             }
         }
 
-        private async Task HandleConnectionAsync(WebSocket webSocket)
+        private async Task HandleConnectionAsync(string connectionId, WebSocket webSocket)
         {
             var buffer = new byte[1024 * 4];
             while (webSocket.State == WebSocketState.Open)
             {
-                var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                if (result.MessageType == WebSocketMessageType.Close)
+                try
                 {
-                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                    var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                        break;
+                    }
+                    else if (result.MessageType == WebSocketMessageType.Text)
+                    {
+                        var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        if (MessageReceived != null)
+                        {
+                            await MessageReceived(message);
+                        }
+                    }
                 }
-                else if (result.MessageType == WebSocketMessageType.Text)
+                catch (Exception)
                 {
-                    // Echo for now
-                    await webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), WebSocketMessageType.Text, result.EndOfMessage, CancellationToken.None);
+                    break;
                 }
             }
+            _connections.TryRemove(connectionId, out _);
+        }
+
+        public async Task BroadcastAsync(string message)
+        {
+            var bytes = Encoding.UTF8.GetBytes(message);
+            var segment = new ArraySegment<byte>(bytes);
+            
+            foreach (var kvp in _connections)
+            {
+                try
+                {
+                    if (kvp.Value.State == WebSocketState.Open)
+                    {
+                        await kvp.Value.SendAsync(segment, WebSocketMessageType.Text, true, CancellationToken.None);
+                    }
+                }
+                catch
+                {
+                    // Ignore send errors, connection will be cleaned up
+                }
+            }
+        }
+
+        public async Task SendToDeviceAsync(string deviceId, string message)
+        {
+            // For now, broadcast to all connections. In the future, track deviceId per connection.
+            await BroadcastAsync(message);
         }
     }
 }

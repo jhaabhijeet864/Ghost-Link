@@ -26,3 +26,6 @@ Thumbs.db
 [Dd]esktop.ini
 *.DS_Store
 *.log
+*.db
+*.db-shm
+*.db-wal
