@@ -26,6 +26,8 @@ namespace LocalLoop.Service
 
         private readonly Dictionary<string, TaskCompletionSource<IpcMessage>> _pendingApprovals = new();
         private readonly SemaphoreSlim _approvalsLock = new(1, 1);
+        private StreamWriter? _activeBridgeWriter;
+        private readonly SemaphoreSlim _bridgeWriterLock = new(1, 1);
 
         public Worker(
             ILogger<Worker> logger,
@@ -110,8 +112,14 @@ namespace LocalLoop.Service
                 using var reader = new StreamReader(pipeServer, System.Text.Encoding.UTF8);
                 await using var writer = new StreamWriter(pipeServer, System.Text.Encoding.UTF8) { AutoFlush = true };
 
-                while (pipeServer.IsConnected && !ct.IsCancellationRequested)
+                await _bridgeWriterLock.WaitAsync(ct);
+                try { _activeBridgeWriter = writer; }
+                finally { _bridgeWriterLock.Release(); }
+
+                try
                 {
+                    while (pipeServer.IsConnected && !ct.IsCancellationRequested)
+                    {
                     var messageLine = await reader.ReadLineAsync(ct);
                     if (messageLine == null) break;
 
@@ -133,6 +141,13 @@ namespace LocalLoop.Service
                     await HandleMessageAsync(messageLine, writer, ct);
                 }
             }
+            finally
+            {
+                await _bridgeWriterLock.WaitAsync();
+                try { if (_activeBridgeWriter == writer) _activeBridgeWriter = null; }
+                finally { _bridgeWriterLock.Release(); }
+            }
+        }
         }
 
         private async Task HandleWebSocketMessageAsync(string message)
@@ -195,6 +210,23 @@ namespace LocalLoop.Service
                 case IpcMessageTypes.ApprovalResponse:
                     await HandleApprovalResponseFromWebSocket(ipcMessage);
                     break;
+                case IpcMessageTypes.InjectPrompt:
+                    if (_activeBridgeWriter != null)
+                    {
+                        await _bridgeWriterLock.WaitAsync();
+                        try
+                        {
+                            if (_activeBridgeWriter != null)
+                            {
+                                await _activeBridgeWriter.WriteLineAsync(JsonSerializer.Serialize(ipcMessage));
+                            }
+                        }
+                        finally
+                        {
+                            _bridgeWriterLock.Release();
+                        }
+                    }
+                    break;
             }
         }
 
@@ -230,6 +262,23 @@ namespace LocalLoop.Service
                         
                         var response = IpcMessageFactory.CreateCommandResponse(intent.IntentId, true, "Command auto-approved and executed");
                         await _webSocketServer.BroadcastAsync(JsonSerializer.Serialize(response));
+
+                        if (_activeBridgeWriter != null)
+                        {
+                            await _bridgeWriterLock.WaitAsync();
+                            try
+                            {
+                                if (_activeBridgeWriter != null)
+                                {
+                                    var bridgeCmd = IpcMessageFactory.CreateCommandRequest(intent);
+                                    await _activeBridgeWriter.WriteLineAsync(JsonSerializer.Serialize(bridgeCmd));
+                                }
+                            }
+                            finally
+                            {
+                                _bridgeWriterLock.Release();
+                            }
+                        }
                         break;
 
                     case PolicyDecision.Ask:
@@ -330,6 +379,27 @@ namespace LocalLoop.Service
 
                     case IpcMessageTypes.ApprovalResponse:
                         await HandleApprovalResponse(message, stoppingToken);
+                        break;
+
+                    case IpcMessageTypes.AgentSessions:
+                        await _webSocketServer.BroadcastAsync(JsonSerializer.Serialize(message));
+                        break;
+
+                    case IpcMessageTypes.AppEvent:
+                        try
+                        {
+                            var appEvt = JsonSerializer.Deserialize<AppEvent>(message.Data);
+                            if (appEvt != null)
+                            {
+                                await _repository.AppendEventAsync(appEvt);
+                            }
+                        }
+                        catch { }
+                        await _webSocketServer.BroadcastAsync(JsonSerializer.Serialize(message));
+                        break;
+
+                    case IpcMessageTypes.CommandResponse:
+                        await _webSocketServer.BroadcastAsync(JsonSerializer.Serialize(message));
                         break;
 
                     default:

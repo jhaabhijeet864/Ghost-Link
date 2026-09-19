@@ -1,16 +1,16 @@
-import 'dart:io';
+import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:multicast_dns/multicast_dns.dart';
 import '../security/crypto_manager.dart';
 import '../../data/database/isolate_worker.dart';
 import 'signed_envelope.dart';
-import 'dart:convert';
-import 'dart:async';
-import 'package:multicast_dns/multicast_dns.dart';
 
 enum ConnectionStatus { disconnected, connecting, authenticating, connected }
 
 class WebSocketClient {
-  WebSocket? _socket;
+  WebSocketChannel? _channel;
   final CryptoManager _cryptoManager = CryptoManager();
   late final SignedEnvelope _signedEnvelope = SignedEnvelope(_cryptoManager);
 
@@ -48,6 +48,8 @@ class WebSocketClient {
   }
 
   Future<({String ip, String port, String? machineName})?> _discoverEndpoint(String serviceName) async {
+    if (kIsWeb) return null;
+
     const String name = '_localloop._tcp.local';
     final MDnsClient client = MDnsClient();
     await client.start();
@@ -97,25 +99,32 @@ class WebSocketClient {
     // Attempt connecting to cached IP first
     try {
       uri = _buildUri(targetIp, targetPort, publicKey, _lastPairingSecret);
-      _socket = await WebSocket.connect(uri.toString()).timeout(const Duration(seconds: 2));
+      _channel = WebSocketChannel.connect(uri);
+      await _channel!.ready.timeout(const Duration(seconds: 3));
     } catch (_) {
-      // If direct connection fails, try mDNS discovery
-      final endpoint = await _discoverEndpoint('_localloop._tcp.local');
-      if (endpoint != null) {
-        targetIp = endpoint.ip;
-        targetPort = endpoint.port;
-        _activeMachineName = endpoint.machineName;
-        resolvedViaMdns = true;
-        uri = _buildUri(targetIp, targetPort, publicKey, _lastPairingSecret);
-        try {
-          _socket = await WebSocket.connect(uri.toString()).timeout(const Duration(seconds: 5));
-        } catch (e) {
+      // If direct connection fails, try mDNS discovery (native only)
+      if (!kIsWeb) {
+        final endpoint = await _discoverEndpoint('_localloop._tcp.local');
+        if (endpoint != null) {
+          targetIp = endpoint.ip;
+          targetPort = endpoint.port;
+          _activeMachineName = endpoint.machineName;
+          resolvedViaMdns = true;
+          uri = _buildUri(targetIp, targetPort, publicKey, _lastPairingSecret);
+          try {
+            _channel = WebSocketChannel.connect(uri);
+            await _channel!.ready.timeout(const Duration(seconds: 5));
+          } catch (e) {
+            _scheduleReconnect();
+            throw Exception("Could not connect to discovered LocalLoop endpoint.");
+          }
+        } else {
           _scheduleReconnect();
-          throw Exception("Could not connect to discovered LocalLoop endpoint.");
+          throw Exception("Could not discover or connect to LocalLoop on the local network.");
         }
       } else {
         _scheduleReconnect();
-        throw Exception("Could not discover or connect to LocalLoop on the local network.");
+        throw Exception("Could not connect to LocalLoop endpoint on $targetIp:$targetPort.");
       }
     }
 
@@ -126,16 +135,16 @@ class WebSocketClient {
     _setStatus(ConnectionStatus.authenticating);
     final Completer<void> authCompleter = Completer<void>();
 
-    _socket!.listen(
+    _channel!.stream.listen(
       (message) async {
         try {
-          final Map<String, dynamic> data = jsonDecode(message);
+          final Map<String, dynamic> data = jsonDecode(message as String);
           final type = data['type'] as String?;
 
           if (type == 'auth_challenge') {
             final challenge = data['challenge'] as String;
             final signature = await _cryptoManager.signToken(challenge);
-            _socket!.add(jsonEncode({
+            _channel?.sink.add(jsonEncode({
               'type': 'auth_response',
               'signature': signature,
             }));
@@ -169,7 +178,7 @@ class WebSocketClient {
     );
 
     // Wait for the server to acknowledge authentication
-    await authCompleter.future.timeout(const Duration(seconds: 5), onTimeout: () {
+    await authCompleter.future.timeout(const Duration(seconds: 6), onTimeout: () {
       _handleSocketClosed();
       throw Exception("Authentication timeout.");
     });
@@ -178,9 +187,9 @@ class WebSocketClient {
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
-      if (_status == ConnectionStatus.connected && _socket != null) {
+      if (_status == ConnectionStatus.connected && _channel != null) {
         try {
-          _socket!.add(jsonEncode({
+          _channel?.sink.add(jsonEncode({
             'type': 'ping',
             'timestamp': DateTime.now().millisecondsSinceEpoch,
           }));
@@ -193,8 +202,8 @@ class WebSocketClient {
 
   void _handleSocketClosed() {
     _heartbeatTimer?.cancel();
-    _socket?.close();
-    _socket = null;
+    _channel?.sink.close();
+    _channel = null;
     _setStatus(ConnectionStatus.disconnected);
     _scheduleReconnect();
   }
@@ -213,12 +222,11 @@ class WebSocketClient {
   void disconnect() {
     _reconnectTimer?.cancel();
     _heartbeatTimer?.cancel();
-    _socket?.close();
-    _socket = null;
+    _channel?.sink.close();
+    _channel = null;
     _setStatus(ConnectionStatus.disconnected);
     latencyNotifier.value = null;
   }
-
 
   Uri _buildUri(String ip, String port, String publicKey, String? pairingSecret) {
     var uriStr = 'ws://$ip:$port?publicKey=${Uri.encodeQueryComponent(publicKey)}';
@@ -230,18 +238,18 @@ class WebSocketClient {
 
   Future<void> sendCommand(Map<String, dynamic> command) async {
     final envelope = await _signedEnvelope.seal('command_request', command);
-    _socket?.add(jsonEncode(envelope));
+    _channel?.sink.add(jsonEncode(envelope));
   }
 
   Future<void> sendApprovalResponse(Map<String, dynamic> response) async {
     final envelope = await _signedEnvelope.seal('approval_response', response);
-    _socket?.add(jsonEncode(envelope));
+    _channel?.sink.add(jsonEncode(envelope));
   }
 
   void dispose() {
     _heartbeatTimer?.cancel();
     _reconnectTimer?.cancel();
-    _socket?.close();
+    _channel?.sink.close();
     _setStatus(ConnectionStatus.disconnected);
     _messageController.close();
     _approvalController.close();

@@ -23,6 +23,9 @@ namespace LocalLoop.Core
         public const string AuditEvent = "audit_event";
         public const string Ack = "ack";
         public const string Error = "error";
+        public const string AgentSessions = "agent_sessions";
+        public const string AppEvent = "app_event";
+        public const string InjectPrompt = "inject_prompt";
     }
 
     public static class IpcMessageFactory

@@ -23,6 +23,8 @@ namespace LocalLoop.Service.Policy
                 ["view"] = PolicyDecision.Allow,
                 ["show"] = PolicyDecision.Allow,
                 ["get"] = PolicyDecision.Allow,
+                ["inject_prompt"] = PolicyDecision.Allow,
+                ["prompt"] = PolicyDecision.Allow,
                 ["list"] = PolicyDecision.Allow,
                 ["tail"] = PolicyDecision.Allow,
                 ["watch"] = PolicyDecision.Allow,
