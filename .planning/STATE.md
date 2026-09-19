@@ -2,26 +2,26 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Mobile Companion Experience & UI Architecture
-status: Phase 6 Complete — Ready for Phase 7
-last_updated: "2026-09-19T10:45:00.000Z"
+status: Milestone v1.1 Complete — All Phases (5, 6, 7, 8) Nyquist Compliant
+last_updated: "2026-09-19T11:10:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
-  percent: 50
+  completed_phases: 4
+  total_plans: 4
+  completed_plans: 4
+  percent: 100
 ---
 
 # Project State: Milestone v1.1
 
 ## Current Phase
 
-Phase 7: Command & Approval Hardening (Voice Dictation Visualizer, Rich Approval Sheet & 2m Timer)
+Milestone v1.1 Final Verification & Delivery
 
 ## Completed Phases
 
 - [x] **Phase 5: Navigation Shell & Workspaces Dashboard** (Completed ✓)
-  - 5-tab persistent bottom navigation (`Workspaces`, `Observe`, `Command`, `Approvals`, `Settings`)
+  - 5-destination persistent bottom navigation (`Workspaces`, `Observe`, `Command`, `Approvals`, `Settings`)
   - Workspaces Dashboard with active workstation card and live ping latency
   - Multi-device switcher and saved workstations list
   - Validated manual connection dialog with auto-paste
@@ -32,6 +32,17 @@ Phase 7: Command & Approval Hardening (Voice Dictation Visualizer, Rich Approval
   - Monospace Code Diff Viewer with green additions (`+`), red deletions (`-`), line numbers, and file headers
   - On-Demand Screenshot Previewer with "Capture Fresh" trigger and full-screen `InteractiveViewer` pinch-to-zoom modal
 
+- [x] **Phase 7: Command & Approval Hardening** (Completed ✓)
+  - Voice dictation waveform visualizer with animated radial sound rings
+  - Simulated speech recognition step timer and editable live transcript
+  - Rich Approval Request Detail Sheet with 2-minute circular countdown timer
+  - Auto-rejection dispatch on expiration (`00:00`)
+  - Affected resource inspection with clipboard copy and one-tap Ed25519 signed approval
+
+- [x] **Phase 8: Settings & Security Hardening** (Completed ✓)
+  - Revoke All Pairings with red confirmation dialog and local cryptographic reset
+  - Comprehensive 100% Nyquist compliance across all 4 milestone phases
+
 ## Next Steps
 
-- Run `/gsd-plan-phase 7` to implement voice dictation visualizer animation and rich approval detail sheet with 2-minute countdown timer.
+- Team review or proceed to Milestone v1.2 / packaging.

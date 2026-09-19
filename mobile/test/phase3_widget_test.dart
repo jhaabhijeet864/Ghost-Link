@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:local_loop/features/command/command_composer_screen.dart';
@@ -78,7 +77,8 @@ void main() {
       await tester.idle();
 
       expect(find.byType(TextField), findsOneWidget);
-      expect(find.text('Type a command (e.g., "Restart the web server")...'), findsOneWidget);
+      expect(find.text('Type or dictate command...'), findsOneWidget);
+      await tester.pumpAndSettle();
       await tester.pumpAndSettle();
     });
 

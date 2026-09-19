@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_loop/core/network/websocket_client.dart';
-import 'package:local_loop/data/database/app_database.dart';
+import 'widgets/approval_detail_sheet.dart';
 
 class ApprovalItem {
   final String id;
@@ -24,12 +24,14 @@ class ApprovalItem {
 
   factory ApprovalItem.fromJson(Map<String, dynamic> json) {
     return ApprovalItem(
-      id: json['intentId'] as String,
-      action: json['action'] as String,
-      target: json['target'] as String,
-      riskLevel: json['riskLevel'] as String,
-      explanation: json['explanation'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
+      id: json['intentId'] as String? ?? json['id'] as String? ?? 'unknown',
+      action: json['action'] as String? ?? 'execute',
+      target: json['target'] as String? ?? 'command',
+      riskLevel: json['riskLevel'] as String? ?? 'Medium',
+      explanation: json['explanation'] as String? ?? 'User command requires confirmation',
+      timestamp: json['timestamp'] != null
+          ? DateTime.tryParse(json['timestamp'] as String) ?? DateTime.now()
+          : DateTime.now(),
       status: json['status'] as String? ?? 'pending',
     );
   }
@@ -101,7 +103,6 @@ class ApprovalInboxScreen extends ConsumerStatefulWidget {
 
 class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
   final WebSocketClient _wsClient = WebSocketClient();
-  final AppDatabase _db = AppDatabase();
   
   bool _isConnected = false;
 
@@ -121,7 +122,12 @@ class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
         ...intent,
         'status': 'pending',
       });
-      if (mounted) ref.read(pendingApprovalsProvider.notifier).add(item);
+      if (mounted) {
+        ref.read(pendingApprovalsProvider.notifier).add(item);
+        if (item.riskLevel.toLowerCase() == 'high') {
+          _openApprovalDetailSheet(item);
+        }
+      }
     });
     
     _wsClient.messageStream.listen((message) {
@@ -140,8 +146,35 @@ class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
     });
   }
 
+  void _openApprovalDetailSheet(ApprovalItem item) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ApprovalDetailSheet(
+        item: item,
+        onApprove: () => _respondToApproval(item, true),
+        onReject: () => _respondToApproval(item, false),
+        onExpired: () => _handleExpired(item),
+      ),
+    );
+  }
+
+  Future<void> _handleExpired(ApprovalItem item) async {
+    ref.read(pendingApprovalsProvider.notifier).updateStatus(item.id, 'expired');
+    await _respondToApproval(item, false);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Approval request for "${item.action}" expired after 2 minutes and was rejected.'),
+          backgroundColor: const Color(0xFF2A0D0D),
+        ),
+      );
+    }
+  }
+
   Future<void> _respondToApproval(ApprovalItem item, bool approved) async {
-    ref.read(pendingApprovalsProvider.notifier).updateStatus(item.id, 'responding');
+    ref.read(pendingApprovalsProvider.notifier).updateStatus(item.id, approved ? 'approved' : 'rejected');
     
     final response = {
       'type': 'approval_response',
@@ -275,92 +308,104 @@ class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
   }
 
   Widget _buildApprovalCard(ApprovalItem item) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF121418),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF2A2E39)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(item.riskIcon, color: item.riskColor, size: 22),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${item.action} ${item.target}',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+    return GestureDetector(
+      onTap: () => _openApprovalDetailSheet(item),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF121418),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF2A2E39)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(item.riskIcon, color: item.riskColor, size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${item.action} ${item.target}',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Risk: ${item.riskLevel}',
+                        style: TextStyle(fontSize: 12, color: item.riskColor, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: item.riskColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: item.riskColor.withOpacity(0.4)),
+                  ),
+                  child: Text(
+                    item.riskLevel,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: item.riskColor,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Risk: ${item.riskLevel}',
-                      style: TextStyle(fontSize: 12, color: item.riskColor, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              item.explanation,
+              style: const TextStyle(fontSize: 13, color: Color(0xFF8A94A6)),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Text(
+                  'Requested: ${_formatTime(item.timestamp)}',
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF8A94A6)),
+                ),
+                const Spacer(),
+                const Text(
+                  'Tap for Details & Timer ›',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF00E676), fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showRejectConfirmation(item),
+                    icon: const Icon(Icons.close, size: 18, color: Color(0xFFFF3D00)),
+                    label: const Text('Reject', style: TextStyle(color: Color(0xFFFF3D00), fontWeight: FontWeight.bold)),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFFFF3D00)),
                     ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: item.riskColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: item.riskColor.withOpacity(0.4)),
-                ),
-                child: Text(
-                  item.riskLevel,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: item.riskColor,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            item.explanation,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF8A94A6)),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Requested: ${_formatTime(item.timestamp)}',
-            style: const TextStyle(fontSize: 11, color: Color(0xFF8A94A6)),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _showRejectConfirmation(item),
-                  icon: const Icon(Icons.close, size: 18, color: Color(0xFFFF3D00)),
-                  label: const Text('Reject', style: TextStyle(color: Color(0xFFFF3D00), fontWeight: FontWeight.bold)),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFFF3D00)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _openApprovalDetailSheet(item),
+                    icon: const Icon(Icons.check, size: 18, color: Color(0xFF090A0C)),
+                    label: const Text('Review', style: TextStyle(color: Color(0xFF090A0C), fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _respondToApproval(item, true),
-                  icon: const Icon(Icons.check, size: 18, color: Color(0xFF090A0C)),
-                  label: const Text('Approve', style: TextStyle(color: Color(0xFF090A0C), fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

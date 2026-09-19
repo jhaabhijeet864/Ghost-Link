@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_loop/core/network/websocket_client.dart';
 import 'package:local_loop/data/database/app_database.dart';
+import 'widgets/voice_dictation_modal.dart';
 
-final quickActionsProvider = Provider<List<QuickAction>>((ref) => [
+final quickActionsProvider = Provider<List<QuickAction>>((ref) => const [
   QuickAction(
     label: 'Read Logs',
     icon: Icons.article,
@@ -94,7 +95,6 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
   
   bool _isConnected = false;
   bool _isSending = false;
-  String? _pendingIntentId;
   List<Map<String, dynamic>> _commandHistory = [];
 
   @override
@@ -107,10 +107,6 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
   Future<void> _connect() async {
     await _wsClient.connect(widget.ip, widget.port, widget.token);
     if (mounted) setState(() => _isConnected = true);
-    
-    _wsClient.approvalStream.listen((approval) {
-      if (mounted) _showApprovalDialog(approval);
-    });
   }
 
   Future<void> _loadHistory() async {
@@ -142,97 +138,6 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
     await _wsClient.sendCommand(command);
     _controller.clear();
     setState(() => _isSending = false);
-  }
-
-  void _showApprovalDialog(Map<String, dynamic> approval) {
-    final intent = approval['data'] as Map<String, dynamic>;
-    final intentId = intent['intentId'] as String;
-    
-    setState(() => _pendingIntentId = intentId);
-    
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF121418),
-        title: Row(
-          children: [
-            Icon(
-              _getRiskIcon(intent['riskLevel'] as String? ?? 'Medium'),
-              color: _getRiskColor(intent['riskLevel'] as String? ?? 'Medium'),
-            ),
-            const SizedBox(width: 8),
-            const Text('Approval Required', style: TextStyle(color: Colors.white)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Action: ${intent['action']}', style: const TextStyle(color: Colors.white)),
-            Text('Target: ${intent['target']}', style: const TextStyle(color: Colors.white)),
-            Text('Risk Level: ${intent['riskLevel']}', style: TextStyle(color: _getRiskColor(intent['riskLevel'] as String? ?? 'Medium'))),
-            const SizedBox(height: 8),
-            Text('Explanation: ${intent['explanation']}', style: const TextStyle(color: Color(0xFF8A94A6))),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              await _respondToApproval(intentId, false);
-              if (context.mounted) Navigator.pop(context);
-            },
-            style: TextButton.styleFrom(foregroundColor: const Color(0xFFFF3D00)),
-            child: const Text('Reject'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await _respondToApproval(intentId, true);
-              if (context.mounted) Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF090A0C),
-            ),
-            child: const Text('Approve'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _respondToApproval(String intentId, bool approved) async {
-    final response = {
-      'type': 'approval_response',
-      'data': {
-        'intentId': intentId,
-        'deviceId': widget.deviceId,
-        'action': 'unknown',
-        'target': 'unknown',
-        'riskLevel': 'Medium',
-        'approved': approved,
-      },
-    };
-    await _wsClient.sendApprovalResponse(response);
-    setState(() => _pendingIntentId = null);
-  }
-
-  IconData _getRiskIcon(String riskLevel) {
-    switch (riskLevel) {
-      case 'Low': return Icons.check_circle;
-      case 'Medium': return Icons.warning;
-      case 'High': return Icons.dangerous;
-      default: return Icons.help;
-    }
-  }
-
-  Color _getRiskColor(String riskLevel) {
-    switch (riskLevel) {
-      case 'Low': return const Color(0xFF00E676);
-      case 'Medium': return const Color(0xFFFFB300);
-      case 'High': return const Color(0xFFFF3D00);
-      default: return const Color(0xFF8A94A6);
-    }
   }
 
   @override
@@ -320,11 +225,15 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
                     controller: _controller,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      hintText: 'Type a command (e.g., "Restart the web server")...',
+                      hintText: 'Type or dictate command...',
                       hintStyle: const TextStyle(color: Color(0xFF8A94A6)),
                       filled: true,
                       fillColor: const Color(0xFF121418),
-                      prefixIcon: const Icon(Icons.terminal, color: Color(0xFF8A94A6)),
+                      prefixIcon: IconButton(
+                        icon: const Icon(Icons.mic, color: Color(0xFF00E676)),
+                        onPressed: _showVoiceDictationModal,
+                        tooltip: 'Voice Dictation',
+                      ),
                       suffixIcon: _isSending
                           ? const SizedBox(
                               width: 20,
@@ -382,6 +291,25 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
             Text(description, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, color: Color(0xFF8A94A6))),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showVoiceDictationModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => VoiceDictationModal(
+        onTranscriptConfirmed: (transcript) {
+          setState(() {
+            if (_controller.text.trim().isEmpty) {
+              _controller.text = transcript;
+            } else {
+              _controller.text = '${_controller.text.trim()} $transcript';
+            }
+          });
+        },
       ),
     );
   }
