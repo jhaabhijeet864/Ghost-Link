@@ -28,6 +28,7 @@ namespace LocalLoop.Service
         private readonly SemaphoreSlim _approvalsLock = new(1, 1);
         private StreamWriter? _activeBridgeWriter;
         private readonly SemaphoreSlim _bridgeWriterLock = new(1, 1);
+        private TranscriptWatcher? _transcriptWatcher;
 
         public Worker(
             ILogger<Worker> logger,
@@ -64,6 +65,22 @@ namespace LocalLoop.Service
                     _logger.LogError(ex, "WebSocket server error");
                 }
             }, stoppingToken);
+
+            _transcriptWatcher = new TranscriptWatcher(line =>
+            {
+                var eventData = JsonSerializer.Serialize(new
+                {
+                    Type = "agent_activity",
+                    Payload = line
+                });
+                var msg = JsonSerializer.Serialize(new
+                {
+                    type = "app_event",
+                    data = eventData
+                });
+                _ = _webSocketServer.BroadcastAsync(msg);
+            });
+            _transcriptWatcher.Start();
 
             // Handle WebSocket messages
             _webSocketServer.MessageReceived += HandleWebSocketMessageAsync;

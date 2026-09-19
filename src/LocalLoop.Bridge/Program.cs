@@ -32,6 +32,11 @@ namespace LocalLoop.Bridge
 
             _pairingWindow = new PairingWindow(token, ip, port);
 
+            Console.WriteLine($"==========================================");
+            Console.WriteLine($"[Bridge] PAIRING TOKEN : {token}");
+            Console.WriteLine($"[Bridge] WORKSTATION IP: {ip}:{port}");
+            Console.WriteLine($"==========================================");
+
             // Start the bridge connection in the background
             Task.Run(() => RunBridgeLoopAsync(token));
 

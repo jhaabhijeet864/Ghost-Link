@@ -1,0 +1,22 @@
+{
+  "denyCommands": [
+    "git push --force*",
+    "git reset --hard*",
+    "rm *.db",
+    "del *.db",
+    "Remove-Item *.db"
+  ],
+  "autoApproveCommands": [
+    "dotnet build*",
+    "dotnet test*",
+    "dotnet format*",
+    "cd mobile && flutter pub get",
+    "cd mobile && flutter analyze",
+    "cd mobile && flutter test*",
+    "cd mobile && dart format*"
+  ],
+  "postEditCommands": [
+    "dotnet format",
+    "cd mobile && dart format ."
+  ]
+}

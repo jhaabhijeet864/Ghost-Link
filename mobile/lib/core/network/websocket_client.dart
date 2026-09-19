@@ -10,6 +10,10 @@ import 'signed_envelope.dart';
 enum ConnectionStatus { disconnected, connecting, authenticating, connected }
 
 class WebSocketClient {
+  static final WebSocketClient _instance = WebSocketClient._internal();
+  factory WebSocketClient() => _instance;
+  WebSocketClient._internal();
+
   WebSocketChannel? _channel;
   final CryptoManager _cryptoManager = CryptoManager();
   late final SignedEnvelope _signedEnvelope = SignedEnvelope(_cryptoManager);

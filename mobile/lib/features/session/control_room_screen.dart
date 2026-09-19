@@ -1,26 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/models/active_agent_session.dart';
 import '../../core/network/websocket_client.dart';
 import '../command/widgets/voice_dictation_modal.dart';
-
-// Stream of discovered agent sessions from Desktop Bridge
-final agentSessionsStreamProvider = StreamProvider.autoDispose<List<ActiveAgentSession>>((ref) {
-  final ws = WebSocketClient();
-  return ws.messageStream.where((msg) => msg['type'] == 'agent_sessions').map((msg) {
-    try {
-      final list = jsonDecode(msg['data'] as String) as List;
-      return list.map((item) => ActiveAgentSession.fromJson(item as Map<String, dynamic>)).toList();
-    } catch (_) {
-      return <ActiveAgentSession>[];
-    }
-  });
-});
-
-// Currently selected target agent session
-final selectedAgentSessionProvider = StateProvider<ActiveAgentSession?>((ref) => null);
 
 // Activity items model
 class AgentActivityItem {
@@ -41,7 +24,7 @@ class AgentActivityItem {
   });
 }
 
-class ControlRoomScreen extends ConsumerStatefulWidget {
+class ControlRoomScreen extends StatefulWidget {
   final VoidCallback? onOpenWorkspaces;
   final VoidCallback? onOpenSettings;
 
@@ -52,15 +35,17 @@ class ControlRoomScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ControlRoomScreen> createState() => _ControlRoomScreenState();
+  State<ControlRoomScreen> createState() => _ControlRoomScreenState();
 }
 
-class _ControlRoomScreenState extends ConsumerState<ControlRoomScreen> {
+class _ControlRoomScreenState extends State<ControlRoomScreen> {
   final TextEditingController _promptController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final WebSocketClient _wsClient = WebSocketClient();
 
   final List<AgentActivityItem> _activities = [];
+  List<ActiveAgentSession> _discoveredSessions = [];
+  ActiveAgentSession? _selectedAgent;
   bool _isConnected = false;
 
   @override
@@ -80,12 +65,21 @@ class _ControlRoomScreenState extends ConsumerState<ControlRoomScreen> {
       }
     });
 
-    // Listen to real-time agent activities from transcript stream
+    // Listen to real-time agent activities and detected sessions from desktop bridge
     _wsClient.messageStream.listen((msg) {
       if (!mounted) return;
       final type = msg['type'] as String?;
 
-      if (type == 'app_event') {
+      if (type == 'agent_sessions') {
+        try {
+          final list = jsonDecode(msg['data'] as String) as List;
+          setState(() {
+            _discoveredSessions = list
+                .map((item) => ActiveAgentSession.fromJson(item as Map<String, dynamic>))
+                .toList();
+          });
+        } catch (_) {}
+      } else if (type == 'app_event') {
         try {
           final eventData = jsonDecode(msg['data'] as String);
           if (eventData['Type'] == 'agent_activity') {
@@ -183,8 +177,7 @@ class _ControlRoomScreenState extends ConsumerState<ControlRoomScreen> {
   Future<void> _sendPrompt(String promptText) async {
     if (promptText.trim().isEmpty) return;
 
-    final selectedAgent = ref.read(selectedAgentSessionProvider);
-    final target = selectedAgent?.title ?? 'Antigravity IDE';
+    final target = _selectedAgent?.title ?? 'Antigravity IDE';
 
     // Add locally to feed immediately
     setState(() {
@@ -274,7 +267,7 @@ class _ControlRoomScreenState extends ConsumerState<ControlRoomScreen> {
                   ),
                 ] else ...[
                   ...sessions.map((session) {
-                    final isSelected = ref.watch(selectedAgentSessionProvider)?.sessionId == session.sessionId;
+                    final isSelected = _selectedAgent?.sessionId == session.sessionId;
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: Container(
@@ -293,7 +286,7 @@ class _ControlRoomScreenState extends ConsumerState<ControlRoomScreen> {
                       subtitle: Text(session.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white54, fontSize: 12)),
                       trailing: isSelected ? const Icon(Icons.check_circle, color: Color(0xFF00E676), size: 20) : null,
                       onTap: () {
-                        ref.read(selectedAgentSessionProvider.notifier).state = session;
+                        setState(() => _selectedAgent = session);
                         Navigator.pop(context);
                       },
                     );
@@ -308,13 +301,111 @@ class _ControlRoomScreenState extends ConsumerState<ControlRoomScreen> {
     );
   }
 
+  void _showPairDialog() {
+    final ipController = TextEditingController(
+      text: kIsWeb && Uri.base.host.isNotEmpty && Uri.base.host != 'localhost'
+          ? Uri.base.host
+          : '192.168.1.2',
+    );
+    final portController = TextEditingController(text: '8080');
+    final tokenController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF161922),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFF2A2E39)),
+        ),
+        title: Row(
+          children: const [
+            Icon(Icons.qr_code_2, color: Color(0xFF00E676), size: 24),
+            SizedBox(width: 10),
+            Text('Pair Workstation', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter the pairing token shown in the LocalLoop desktop window on your laptop.',
+              style: TextStyle(color: Colors.white70, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: tokenController,
+              autofocus: true,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+              decoration: const InputDecoration(
+                labelText: 'Pairing Token',
+                hintText: 'e.g. token or paste URL',
+                prefixIcon: Icon(Icons.key, color: Color(0xFF00E676)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: TextField(
+                    controller: ipController,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(
+                      labelText: 'Laptop IP',
+                      prefixIcon: Icon(Icons.lan, color: Colors.white54, size: 18),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    controller: portController,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(
+                      labelText: 'Port',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final token = tokenController.text.trim();
+              final ip = ipController.text.trim();
+              final port = portController.text.trim();
+              Navigator.pop(ctx);
+              if (token.isNotEmpty && ip.isNotEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Pairing with workstation...')),
+                );
+                await _wsClient.connect(ip, port, token);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF00E676),
+              foregroundColor: Colors.black,
+            ),
+            child: const Text('Connect & Pair', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final discoveredSessionsAsync = ref.watch(agentSessionsStreamProvider);
-    final sessions = discoveredSessionsAsync.value ?? [];
-    final selectedAgent = ref.watch(selectedAgentSessionProvider);
-
-    final activeTitle = selectedAgent?.displayName ??
+    final sessions = _discoveredSessions;
+    final activeTitle = _selectedAgent?.displayName ??
         (sessions.isNotEmpty ? sessions.first.displayName : 'Antigravity IDE');
 
     return Scaffold(
@@ -355,9 +446,10 @@ class _ControlRoomScreenState extends ConsumerState<ControlRoomScreen> {
           ),
         ),
         actions: [
-          ValueListenableBuilder<int?>(
-            valueListenable: _wsClient.latencyNotifier,
-            builder: (context, latency, child) {
+          ListenableBuilder(
+            listenable: _wsClient.latencyNotifier,
+            builder: (context, child) {
+              final latency = _wsClient.latencyNotifier.value;
               if (latency == null) return const SizedBox.shrink();
               return Padding(
                 padding: const EdgeInsets.only(right: 12),
@@ -385,18 +477,14 @@ class _ControlRoomScreenState extends ConsumerState<ControlRoomScreen> {
                   const SizedBox(width: 10),
                   const Expanded(
                     child: Text(
-                      'Disconnected. Connect to laptop Wi-Fi or Hotspot.',
+                      'Disconnected from desktop workstation.',
                       style: TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      _wsClient.connect(
-                        _wsClient.activeMachineName ?? '192.168.1.2',
-                        '8080',
-                      );
-                    },
-                    child: const Text('Retry', style: TextStyle(color: Color(0xFFFF8A80), fontSize: 12)),
+                  TextButton.icon(
+                    icon: const Icon(Icons.qr_code, size: 14, color: Color(0xFF00E676)),
+                    label: const Text('Pair Desktop', style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 12)),
+                    onPressed: _showPairDialog,
                   ),
                 ],
               ),
