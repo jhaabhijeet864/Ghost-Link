@@ -9,6 +9,10 @@ import '../../features/machines/presentation/machine_detail_screen.dart';
 import '../../features/pairing/presentation/pairing_flow_screen.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/app_bottom_navigation.dart';
+import '../../features/workspaces/presentation/workspace_detail_screen.dart';
+import '../../features/session/presentation/sessions_list_screen.dart';
+import '../../features/session/presentation/new_session_screen.dart';
+import '../../features/session/presentation/session_detail_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -33,6 +37,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/pairing',
         builder: (context, state) => const PairingFlowScreen(),
+      ),
+      GoRoute(
+        path: '/workspace/:id',
+        builder: (context, state) => WorkspaceDetailScreen(
+          workspaceId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/sessions',
+        builder: (context, state) => const SessionsListScreen(),
+      ),
+      GoRoute(
+        path: '/new-session',
+        builder: (context, state) => const NewSessionScreen(),
+      ),
+      GoRoute(
+        path: '/session/:id',
+        builder: (context, state) => SessionDetailScreen(
+          sessionId: state.pathParameters['id']!,
+        ),
       ),
     ],
   );

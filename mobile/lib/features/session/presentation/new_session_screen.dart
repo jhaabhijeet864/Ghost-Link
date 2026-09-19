@@ -67,18 +67,35 @@ class _NewSessionScreenState extends ConsumerState<NewSessionScreen> {
           ),
           const SizedBox(height: AppSpacing.large),
 
+          // Context
+          Text('Context', style: AppTypography.sectionTitle),
+          const SizedBox(height: AppSpacing.small),
+          Wrap(
+            spacing: AppSpacing.small,
+            children: [
+              _buildPill('Current error', true),
+              _buildPill('Changed files', false),
+              _buildPill('Latest diff', false),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.large),
+
           // Policy
           Text('Execution policy', style: AppTypography.sectionTitle),
           const SizedBox(height: AppSpacing.small),
-          SwitchListTile(
-            title: Text('Ask before risky actions', style: AppTypography.body),
-            subtitle: Text(
-                'Agent will pause for approval before executing commands like git push or rm.',
-                style: AppTypography.caption),
-            value: _askBeforeRiskyActions,
-            onChanged: (val) => setState(() => _askBeforeRiskyActions = val),
-            activeColor: AppColors.accent,
-            contentPadding: EdgeInsets.zero,
+          _buildDropdownSection('Ask before risky actions', ''),
+          const SizedBox(height: AppSpacing.large),
+
+          // Notifications
+          Text('Notifications', style: AppTypography.sectionTitle),
+          const SizedBox(height: AppSpacing.small),
+          Wrap(
+            spacing: AppSpacing.small,
+            children: [
+              _buildPill('Failures', true),
+              _buildPill('Approvals', true),
+              _buildPill('Completion', false),
+            ],
           ),
           const SizedBox(height: AppSpacing.large),
 
@@ -132,6 +149,25 @@ class _NewSessionScreenState extends ConsumerState<NewSessionScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPill(String label, bool isSelected) {
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) {},
+      backgroundColor: AppColors.surfaceElevated,
+      selectedColor: AppColors.surfacePressed,
+      labelStyle: AppTypography.body.copyWith(
+        color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+      ),
+      side: BorderSide(
+        color: isSelected ? AppColors.border : Colors.transparent,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
     );
   }
 }

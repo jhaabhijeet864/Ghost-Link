@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -87,7 +88,9 @@ class _SessionsListScreenState extends ConsumerState<SessionsListScreen> {
                   branch: 'feature/timeouts',
                   currentActivity: 'Running integration tests',
                   lastUpdate: '12s ago',
-                  onTap: () {},
+                  onTap: () {
+                    context.push('/session/mock-session-id');
+                  },
                 ),
                 SessionCard(
                   title: 'Migrate to new architecture',

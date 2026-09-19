@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -114,7 +115,9 @@ class _WorkspacesDashboardScreenState
                 failingTests: 2,
                 activeSessions: 1,
                 machine: 'Rajesh-Workstation',
-                onTap: () {},
+                onTap: () {
+                  context.push('/workspace/crm-api');
+                },
               ),
               WorkspaceCard(
                 title: 'LocalLoop.Client',

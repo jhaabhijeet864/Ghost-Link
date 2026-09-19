@@ -50,9 +50,20 @@ class HomeScreen extends ConsumerWidget {
         ),
         
         const SizedBox(height: AppSpacing.large),
-        Text(
-          'Active sessions',
-          style: AppTypography.sectionTitle,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Active sessions',
+              style: AppTypography.sectionTitle,
+            ),
+            TextButton(
+              onPressed: () {
+                context.push('/sessions');
+              },
+              child: const Text('See all'),
+            ),
+          ],
         ),
         const SizedBox(height: AppSpacing.small),
         // Empty state for now
