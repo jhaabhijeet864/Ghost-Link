@@ -36,10 +36,10 @@ class ApprovalItem {
 
   Color get riskColor {
     switch (riskLevel) {
-      case 'Low': return Colors.green;
-      case 'Medium': return Colors.orange;
-      case 'High': return Colors.red;
-      default: return Colors.grey;
+      case 'Low': return const Color(0xFF00E676);
+      case 'Medium': return const Color(0xFFFFB300);
+      case 'High': return const Color(0xFFFF3D00);
+      default: return const Color(0xFF8A94A6);
     }
   }
 
@@ -113,7 +113,7 @@ class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
 
   Future<void> _connect() async {
     await _wsClient.connect(widget.ip, widget.port, widget.token);
-    setState(() => _isConnected = true);
+    if (mounted) setState(() => _isConnected = true);
     
     _wsClient.approvalStream.listen((approval) {
       final intent = approval['data'] as Map<String, dynamic>;
@@ -121,7 +121,7 @@ class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
         ...intent,
         'status': 'pending',
       });
-      ref.read(pendingApprovalsProvider.notifier).add(item);
+      if (mounted) ref.read(pendingApprovalsProvider.notifier).add(item);
     });
     
     _wsClient.messageStream.listen((message) {
@@ -129,10 +129,12 @@ class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
         final data = message['data'] as Map<String, dynamic>?;
         if (data != null && data['intentId'] != null) {
           final success = data['success'] as bool? ?? false;
-          ref.read(pendingApprovalsProvider.notifier).updateStatus(
-            data['intentId'] as String,
-            success ? 'approved' : 'rejected',
-          );
+          if (mounted) {
+            ref.read(pendingApprovalsProvider.notifier).updateStatus(
+              data['intentId'] as String,
+              success ? 'approved' : 'rejected',
+            );
+          }
         }
       }
     });
@@ -178,12 +180,12 @@ class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.red,
+                  color: const Color(0xFFFF3D00),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '${pending.length}',
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -191,7 +193,7 @@ class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.history),
+            icon: const Icon(Icons.history, color: Colors.white),
             onPressed: () => _showHistoryDialog(history),
             tooltip: 'Approval History',
           ),
@@ -200,22 +202,23 @@ class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
       body: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
-            color: _isConnected ? Colors.green.shade50 : Colors.red.shade50,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            color: _isConnected ? const Color(0xFF0D2117) : const Color(0xFF2A0D0D),
             width: double.infinity,
             child: Row(
               children: [
                 Icon(
                   _isConnected ? Icons.wifi : Icons.wifi_off,
-                  color: _isConnected ? Colors.green : Colors.red,
-                  size: 20,
+                  color: _isConnected ? const Color(0xFF00E676) : const Color(0xFFFF3D00),
+                  size: 18,
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  _isConnected ? 'Connected to Desktop' : 'Disconnected',
+                  _isConnected ? 'Connected to Workstation' : 'Disconnected',
                   style: TextStyle(
-                    color: _isConnected ? Colors.green.shade800 : Colors.red.shade800,
-                    fontWeight: FontWeight.w500,
+                    color: _isConnected ? const Color(0xFFA7F3D0) : const Color(0xFFFF8A80),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
                   ),
                 ),
               ],
@@ -227,21 +230,29 @@ class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.check_circle_outline,
-                      size: 64,
-                      color: Colors.green.shade300,
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF121418),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFF2A2E39)),
+                      ),
+                      child: const Icon(
+                        Icons.check_circle_outline,
+                        size: 56,
+                        color: Color(0xFF00E676),
+                      ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     const Text(
-                      'No pending approvals',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      'No Pending Approvals',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                     const SizedBox(height: 8),
                     const Text(
                       'You have no actions waiting for your review.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: Color(0xFF8A94A6), fontSize: 13),
                     ),
                   ],
                 ),
@@ -264,92 +275,92 @@ class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
   }
 
   Widget _buildApprovalCard(ApprovalItem item) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(item.riskIcon, color: item.riskColor, size: 24),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${item.action} ${item.target}',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        'Risk: ${item.riskLevel}',
-                        style: TextStyle(fontSize: 12, color: item.riskColor),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: item.riskColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: item.riskColor.withOpacity(0.3)),
-                  ),
-                  child: Text(
-                    item.riskLevel,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: item.riskColor,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF121418),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF2A2E39)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(item.riskIcon, color: item.riskColor, size: 22),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${item.action} ${item.target}',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              item.explanation,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Requested: ${_formatTime(item.timestamp)}',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _showRejectConfirmation(item),
-                    icon: const Icon(Icons.close, size: 18),
-                    label: const Text('Reject'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Risk: ${item.riskLevel}',
+                      style: TextStyle(fontSize: 12, color: item.riskColor, fontWeight: FontWeight.w600),
                     ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: item.riskColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: item.riskColor.withOpacity(0.4)),
+                ),
+                child: Text(
+                  item.riskLevel,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: item.riskColor,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _respondToApproval(item, true),
-                    icon: const Icon(Icons.check, size: 18),
-                    label: const Text('Approve'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: item.riskColor,
-                      foregroundColor: Colors.white,
-                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            item.explanation,
+            style: const TextStyle(fontSize: 13, color: Color(0xFF8A94A6)),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Requested: ${_formatTime(item.timestamp)}',
+            style: const TextStyle(fontSize: 11, color: Color(0xFF8A94A6)),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _showRejectConfirmation(item),
+                  icon: const Icon(Icons.close, size: 18, color: Color(0xFFFF3D00)),
+                  label: const Text('Reject', style: TextStyle(color: Color(0xFFFF3D00), fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFFFF3D00)),
                   ),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _respondToApproval(item, true),
+                  icon: const Icon(Icons.check, size: 18, color: Color(0xFF090A0C)),
+                  label: const Text('Approve', style: TextStyle(color: Color(0xFF090A0C), fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -367,16 +378,23 @@ class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reject Action'),
-        content: Text('Are you sure you want to reject "${item.action} ${item.target}"?'),
+        backgroundColor: const Color(0xFF121418),
+        title: const Text('Reject Action', style: TextStyle(color: Colors.white)),
+        content: Text(
+          'Are you sure you want to reject "${item.action} ${item.target}"?',
+          style: const TextStyle(color: Color(0xFF8A94A6)),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _respondToApproval(item, false);
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFFFF3D00)),
             child: const Text('Reject'),
           ),
         ],
@@ -388,11 +406,15 @@ class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Approval History'),
+        backgroundColor: const Color(0xFF121418),
+        title: const Text('Approval History', style: TextStyle(color: Colors.white)),
         content: SizedBox(
           width: double.maxFinite,
           child: history.isEmpty
-              ? const Center(child: Text('No history yet'))
+              ? const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: Text('No history yet', style: TextStyle(color: Color(0xFF8A94A6)))),
+                )
               : ListView.builder(
                   shrinkWrap: true,
                   itemCount: history.length,
@@ -402,24 +424,28 @@ class _ApprovalInboxScreenState extends ConsumerState<ApprovalInboxScreen> {
                     return ListTile(
                       leading: Icon(
                         isApproved ? Icons.check_circle : Icons.cancel,
-                        color: isApproved ? Colors.green : Colors.red,
+                        color: isApproved ? const Color(0xFF00E676) : const Color(0xFFFF3D00),
                       ),
-                      title: Text('${item.action} ${item.target}'),
-                      subtitle: Text('${item.status} • ${_formatTime(item.timestamp)}'),
+                      title: Text('${item.action} ${item.target}', style: const TextStyle(color: Colors.white)),
+                      subtitle: Text('${item.status} • ${_formatTime(item.timestamp)}', style: const TextStyle(color: Color(0xFF8A94A6), fontSize: 12)),
                       trailing: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: item.riskColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: item.riskColor.withOpacity(0.3)),
                         ),
-                        child: Text(item.riskLevel, style: TextStyle(fontSize: 10, color: item.riskColor)),
+                        child: Text(item.riskLevel, style: TextStyle(fontSize: 10, color: item.riskColor, fontWeight: FontWeight.bold)),
                       ),
                     );
                   },
                 ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close', style: TextStyle(color: Colors.white)),
+          ),
         ],
       ),
     );

@@ -19,6 +19,12 @@ class CryptoManager {
     }
   }
 
+  Future<String> getPublicKeyBase64() async {
+    final keyPair = await getOrCreateKeyPair();
+    final publicKey = await keyPair.extractPublicKey();
+    return base64Encode(publicKey.bytes);
+  }
+
   Future<String> signToken(String token) async {
     final keyPair = await getOrCreateKeyPair();
     final signature = await _ed25519.sign(utf8.encode(token), keyPair: keyPair);

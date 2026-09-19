@@ -3,12 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:local_loop/features/command/command_composer_screen.dart';
 import 'package:local_loop/features/command/approval_inbox_screen.dart';
 import 'package:local_loop/core/network/websocket_client.dart';
 
 @GenerateMocks([WebSocketClient])
 void main() {
+  setUpAll(() {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  });
+
   group('CommandComposerScreen Tests', () {
     testWidgets('shows connection status indicator', (WidgetTester tester) async {
       await tester.pumpWidget(
@@ -23,8 +29,11 @@ void main() {
           ),
         ),
       );
+      await tester.pump();
+      await tester.idle();
 
       expect(find.text('Command Composer'), findsOneWidget);
+      await tester.pumpAndSettle();
     });
 
     testWidgets('shows quick action chips', (WidgetTester tester) async {
@@ -40,6 +49,8 @@ void main() {
           ),
         ),
       );
+      await tester.pump();
+      await tester.idle();
 
       expect(find.text('Read Logs'), findsOneWidget);
       expect(find.text('Check Status'), findsOneWidget);
@@ -47,6 +58,7 @@ void main() {
       expect(find.text('View Processes'), findsOneWidget);
       expect(find.text('Kill Process'), findsOneWidget);
       expect(find.text('Run Build'), findsOneWidget);
+      await tester.pumpAndSettle();
     });
 
     testWidgets('shows custom command input field', (WidgetTester tester) async {
@@ -62,9 +74,12 @@ void main() {
           ),
         ),
       );
+      await tester.pump();
+      await tester.idle();
 
       expect(find.byType(TextField), findsOneWidget);
       expect(find.text('Type a command (e.g., "Restart the web server")...'), findsOneWidget);
+      await tester.pumpAndSettle();
     });
 
     testWidgets('shows risk level guide', (WidgetTester tester) async {
@@ -80,11 +95,14 @@ void main() {
           ),
         ),
       );
+      await tester.pump();
+      await tester.idle();
 
       expect(find.text('Risk Level Guide'), findsOneWidget);
       expect(find.text('Low'), findsOneWidget);
       expect(find.text('Medium'), findsOneWidget);
       expect(find.text('High'), findsOneWidget);
+      await tester.pumpAndSettle();
     });
   });
 
@@ -102,10 +120,13 @@ void main() {
           ),
         ),
       );
+      await tester.pump();
+      await tester.idle();
 
       expect(find.text('Approval Inbox'), findsOneWidget);
-      expect(find.text('No pending approvals'), findsOneWidget);
+      expect(find.text('No Pending Approvals'), findsOneWidget);
       expect(find.text('You have no actions waiting for your review.'), findsOneWidget);
+      await tester.pumpAndSettle();
     });
 
     testWidgets('shows connection status indicator', (WidgetTester tester) async {
@@ -121,8 +142,11 @@ void main() {
           ),
         ),
       );
+      await tester.pump();
+      await tester.idle();
 
       expect(find.byIcon(Icons.wifi_off), findsOneWidget);
+      await tester.pumpAndSettle();
     });
 
     testWidgets('shows history button in app bar', (WidgetTester tester) async {
@@ -138,8 +162,11 @@ void main() {
           ),
         ),
       );
+      await tester.pump();
+      await tester.idle();
 
       expect(find.byIcon(Icons.history), findsOneWidget);
+      await tester.pumpAndSettle();
     });
   });
 
@@ -186,7 +213,7 @@ void main() {
         timestamp: DateTime.fromMillisecondsSinceEpoch(0),
         status: 'pending',
       );
-      expect(item.riskColor, equals(Colors.green));
+      expect(item.riskColor, equals(const Color(0xFF00E676)));
       expect(item.riskIcon, equals(Icons.check_circle));
     });
 
@@ -200,7 +227,7 @@ void main() {
         timestamp: DateTime.fromMillisecondsSinceEpoch(0),
         status: 'pending',
       );
-      expect(item.riskColor, equals(Colors.orange));
+      expect(item.riskColor, equals(const Color(0xFFFFB300)));
       expect(item.riskIcon, equals(Icons.warning));
     });
 
@@ -214,7 +241,7 @@ void main() {
         timestamp: DateTime.fromMillisecondsSinceEpoch(0),
         status: 'pending',
       );
-      expect(item.riskColor, equals(Colors.red));
+      expect(item.riskColor, equals(const Color(0xFFFF3D00)));
       expect(item.riskIcon, equals(Icons.dangerous));
     });
   });

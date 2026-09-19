@@ -68,33 +68,18 @@ namespace LocalLoop.Service
             {
                 try
                 {
-                    await using var pipeServer = new NamedPipeServerStream(PipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous);
-                    
+                    var pipeServer = new NamedPipeServerStream(
+                        PipeName,
+                        PipeDirection.InOut,
+                        NamedPipeServerStream.MaxAllowedServerInstances,
+                        PipeTransmissionMode.Byte,
+                        PipeOptions.Asynchronous);
+
                     _logger.LogInformation("Waiting for Desktop Bridge connection on pipe '{PipeName}'...", PipeName);
                     await pipeServer.WaitForConnectionAsync(stoppingToken);
                     _logger.LogInformation("Desktop Bridge connected!");
 
-                    var sessionEvent = new AppEvent
-                    {
-                        SessionId = Guid.NewGuid().ToString(),
-                        Type = "session_created",
-                        Payload = JsonSerializer.Serialize(new { Message = "Desktop Bridge Connected" })
-                    };
-                    await _repository.AppendEventAsync(sessionEvent);
-                    _logger.LogInformation("Event saved: session_created for session {SessionId}", sessionEvent.SessionId);
-
-                    using var reader = new StreamReader(pipeServer);
-                    using var writer = new StreamWriter(pipeServer) { AutoFlush = true };
-
-                    while (pipeServer.IsConnected && !stoppingToken.IsCancellationRequested)
-                    {
-                        var messageLine = await reader.ReadLineAsync(stoppingToken);
-                        if (messageLine == null) break;
-
-                        _logger.LogInformation("Received from Bridge: {Message}", messageLine);
-
-                        await HandleMessageAsync(messageLine, writer, stoppingToken);
-                    }
+                    _ = Task.Run(() => ServePipeClientAsync(pipeServer, stoppingToken), stoppingToken);
                 }
                 catch (OperationCanceledException)
                 {
@@ -108,26 +93,106 @@ namespace LocalLoop.Service
             }
         }
 
+        private async Task ServePipeClientAsync(NamedPipeServerStream pipeServer, CancellationToken ct)
+        {
+            await using (pipeServer)
+            {
+                var sessionEvent = new AppEvent
+                {
+                    SessionId = Guid.NewGuid().ToString(),
+                    Type = "session_created",
+                    Payload = JsonSerializer.Serialize(new { Message = "Desktop Bridge Connected" })
+                };
+                await _repository.AppendEventAsync(sessionEvent);
+
+                using var reader = new StreamReader(pipeServer, System.Text.Encoding.UTF8);
+                await using var writer = new StreamWriter(pipeServer, System.Text.Encoding.UTF8) { AutoFlush = true };
+
+                while (pipeServer.IsConnected && !ct.IsCancellationRequested)
+                {
+                    var messageLine = await reader.ReadLineAsync(ct);
+                    if (messageLine == null) break;
+
+                    _logger.LogInformation("Received from Bridge: {Message}", messageLine);
+
+                    var msgObj = JsonSerializer.Deserialize<IpcMessage>(messageLine);
+                    if (msgObj != null && msgObj.Type == "handshake")
+                    {
+                        try {
+                            var doc = JsonDocument.Parse(msgObj.Data);
+                            if (doc.RootElement.TryGetProperty("Token", out var tokenElement))
+                            {
+                                _pairingManager.SetPairingToken(tokenElement.GetString() ?? "");
+                                _logger.LogInformation("Pairing token updated by Bridge.");
+                            }
+                        } catch { }
+                    }
+
+                    await HandleMessageAsync(messageLine, writer, ct);
+                }
+            }
+        }
+
         private async Task HandleWebSocketMessageAsync(string message)
         {
             try
             {
-                var ipcMessage = JsonSerializer.Deserialize<IpcMessage>(message);
-                if (ipcMessage == null) return;
+                using var doc = JsonDocument.Parse(message);
+                var root = doc.RootElement;
 
-                switch (ipcMessage.Type)
+                // Check for signed action envelope
+                if (root.TryGetProperty("body", out var bodyEl) && root.TryGetProperty("signature", out var sigEl))
                 {
-                    case IpcMessageTypes.CommandRequest:
-                        await ProcessWebSocketCommandRequest(ipcMessage);
-                        break;
-                    case IpcMessageTypes.ApprovalResponse:
-                        await HandleApprovalResponseFromWebSocket(ipcMessage);
-                        break;
+                    var signatureBase64 = sigEl.GetString() ?? "";
+                    var canonicalBody = bodyEl.GetRawText();
+                    var publicKey = bodyEl.TryGetProperty("publicKey", out var pkEl) ? pkEl.GetString() ?? "" : "";
+                    var timestamp = bodyEl.TryGetProperty("timestamp", out var tsEl) ? tsEl.GetInt64() : 0;
+
+                    // Anti-Replay: Reject messages skewed by more than 30 seconds
+                    var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                    if (Math.Abs(now - timestamp) > 30)
+                    {
+                        _logger.LogWarning("Rejecting action envelope: timestamp skew exceeded (Skew: {Diff}s)", now - timestamp);
+                        return;
+                    }
+
+                    if (!_pairingManager.ValidateSignatureRaw(canonicalBody, signatureBase64, publicKey))
+                    {
+                        _logger.LogWarning("Rejecting action envelope: Invalid signature from key {Key}", publicKey);
+                        return;
+                    }
+
+                    var actionType = bodyEl.TryGetProperty("type", out var atEl) ? atEl.GetString() ?? "" : "";
+                    var payloadText = bodyEl.TryGetProperty("payload", out var plEl) ? plEl.GetRawText() : "{}";
+
+                    var unwrapIpc = new IpcMessage { Type = actionType, Data = payloadText };
+                    await DispatchWebSocketIpcMessage(unwrapIpc);
+                    return;
+                }
+
+                // Fallback direct IPC message
+                var ipcMessage = JsonSerializer.Deserialize<IpcMessage>(message);
+                if (ipcMessage != null)
+                {
+                    await DispatchWebSocketIpcMessage(ipcMessage);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error handling WebSocket message");
+            }
+        }
+
+        private async Task DispatchWebSocketIpcMessage(IpcMessage ipcMessage)
+        {
+            switch (ipcMessage.Type)
+            {
+                case IpcMessageTypes.CommandRequest:
+                    await ProcessWebSocketCommandRequest(ipcMessage);
+                    break;
+                case IpcMessageTypes.ApprovalResponse:
+                    await HandleApprovalResponseFromWebSocket(ipcMessage);
+                    break;
             }
         }
 

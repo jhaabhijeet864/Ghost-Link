@@ -106,16 +106,16 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
 
   Future<void> _connect() async {
     await _wsClient.connect(widget.ip, widget.port, widget.token);
-    setState(() => _isConnected = true);
+    if (mounted) setState(() => _isConnected = true);
     
     _wsClient.approvalStream.listen((approval) {
-      _showApprovalDialog(approval);
+      if (mounted) _showApprovalDialog(approval);
     });
   }
 
   Future<void> _loadHistory() async {
     final history = await _db.getCommandHistory(widget.deviceId);
-    setState(() => _commandHistory = history);
+    if (mounted) setState(() => _commandHistory = history);
   }
 
   Future<void> _sendCommand(String input) async {
@@ -154,6 +154,7 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF121418),
         title: Row(
           children: [
             Icon(
@@ -161,18 +162,18 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
               color: _getRiskColor(intent['riskLevel'] as String? ?? 'Medium'),
             ),
             const SizedBox(width: 8),
-            const Text('Approval Required'),
+            const Text('Approval Required', style: TextStyle(color: Colors.white)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Action: ${intent['action']}'),
-            Text('Target: ${intent['target']}'),
-            Text('Risk Level: ${intent['riskLevel']}'),
+            Text('Action: ${intent['action']}', style: const TextStyle(color: Colors.white)),
+            Text('Target: ${intent['target']}', style: const TextStyle(color: Colors.white)),
+            Text('Risk Level: ${intent['riskLevel']}', style: TextStyle(color: _getRiskColor(intent['riskLevel'] as String? ?? 'Medium'))),
             const SizedBox(height: 8),
-            Text('Explanation: ${intent['explanation']}'),
+            Text('Explanation: ${intent['explanation']}', style: const TextStyle(color: Color(0xFF8A94A6))),
           ],
         ),
         actions: [
@@ -181,7 +182,7 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
               await _respondToApproval(intentId, false);
               if (context.mounted) Navigator.pop(context);
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFFFF3D00)),
             child: const Text('Reject'),
           ),
           ElevatedButton(
@@ -189,6 +190,10 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
               await _respondToApproval(intentId, true);
               if (context.mounted) Navigator.pop(context);
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xFF090A0C),
+            ),
             child: const Text('Approve'),
           ),
         ],
@@ -223,10 +228,10 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
 
   Color _getRiskColor(String riskLevel) {
     switch (riskLevel) {
-      case 'Low': return Colors.green;
-      case 'Medium': return Colors.orange;
-      case 'High': return Colors.red;
-      default: return Colors.grey;
+      case 'Low': return const Color(0xFF00E676);
+      case 'Medium': return const Color(0xFFFFB300);
+      case 'High': return const Color(0xFFFF3D00);
+      default: return const Color(0xFF8A94A6);
     }
   }
 
@@ -244,7 +249,7 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
         title: const Text('Command Composer'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.history),
+            icon: const Icon(Icons.history, color: Colors.white),
             onPressed: () => _showHistoryDialog(),
             tooltip: 'Command History',
           ),
@@ -253,22 +258,23 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
       body: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
-            color: _isConnected ? Colors.green.shade50 : Colors.red.shade50,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            color: _isConnected ? const Color(0xFF0D2117) : const Color(0xFF2A0D0D),
             width: double.infinity,
             child: Row(
               children: [
                 Icon(
                   _isConnected ? Icons.wifi : Icons.wifi_off,
-                  color: _isConnected ? Colors.green : Colors.red,
-                  size: 20,
+                  color: _isConnected ? const Color(0xFF00E676) : const Color(0xFFFF3D00),
+                  size: 18,
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  _isConnected ? 'Connected to Desktop' : 'Disconnected',
+                  _isConnected ? 'Connected to Workstation' : 'Disconnected',
                   style: TextStyle(
-                    color: _isConnected ? Colors.green.shade800 : Colors.red.shade800,
-                    fontWeight: FontWeight.w500,
+                    color: _isConnected ? const Color(0xFFA7F3D0) : const Color(0xFFFF8A80),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
                   ),
                 ),
               ],
@@ -284,6 +290,7 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
                     'Quick Actions',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -292,11 +299,11 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
                     runSpacing: 8,
                     children: ref.watch(quickActionsProvider).map((action) => 
                       ActionChip(
-                        avatar: Icon(action.icon, size: 18),
-                        label: Text(action.label),
-                        backgroundColor: action.riskColor.withOpacity(0.1),
+                        avatar: Icon(action.icon, size: 16, color: Colors.white),
+                        label: Text(action.label, style: const TextStyle(color: Colors.white, fontSize: 13)),
+                        backgroundColor: const Color(0xFF121418),
                         onPressed: () => _sendCommand(action.command),
-                        side: BorderSide(color: action.riskColor.withOpacity(0.3)),
+                        side: BorderSide(color: action.riskColor.withOpacity(0.4)),
                       )
                     ).toList(),
                   ),
@@ -305,44 +312,49 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
                     'Custom Command',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _controller,
+                    style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: 'Type a command (e.g., "Restart the web server")...',
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.mic),
+                      hintStyle: const TextStyle(color: Color(0xFF8A94A6)),
+                      filled: true,
+                      fillColor: const Color(0xFF121418),
+                      prefixIcon: const Icon(Icons.terminal, color: Color(0xFF8A94A6)),
                       suffixIcon: _isSending
                           ? const SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
                           : IconButton(
-                              icon: const Icon(Icons.send),
+                              icon: const Icon(Icons.send, color: Colors.white),
                               onPressed: () => _sendCommand(_controller.text),
                             ),
                     ),
                     maxLines: 3,
                     onSubmitted: _sendCommand,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Text(
                     'Risk Level Guide',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: const Color(0xFF8A94A6),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
-                      _buildRiskChip('Low', Colors.green, 'Auto-approved'),
+                      _buildRiskChip('Low', const Color(0xFF00E676), 'Auto-approved'),
                       const SizedBox(width: 8),
-                      _buildRiskChip('Medium', Colors.orange, 'Asks for approval'),
+                      _buildRiskChip('Medium', const Color(0xFFFFB300), 'Asks for approval'),
                       const SizedBox(width: 8),
-                      _buildRiskChip('High', Colors.red, 'Requires explicit approval'),
+                      _buildRiskChip('High', const Color(0xFFFF3D00), 'Requires approval'),
                     ],
                   ),
                 ],
@@ -354,20 +366,20 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
     );
   }
 
-  Widget _buildRiskChip(String label, MaterialColor color, String description) {
+  Widget _buildRiskChip(String label, Color color, String description) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: const Color(0xFF121418),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withOpacity(0.4)),
         ),
         child: Column(
           children: [
-            Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+            Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 13)),
             const SizedBox(height: 4),
-            Text(description, style: TextStyle(fontSize: 12, color: color.shade800)),
+            Text(description, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, color: Color(0xFF8A94A6))),
           ],
         ),
       ),
@@ -378,27 +390,36 @@ class _CommandComposerScreenState extends ConsumerState<CommandComposerScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Command History'),
+        backgroundColor: const Color(0xFF121418),
+        title: const Text('Command History', style: TextStyle(color: Colors.white)),
         content: SizedBox(
           width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: _commandHistory.length,
-            itemBuilder: (context, index) {
-              final cmd = _commandHistory[index];
-              return ListTile(
-                title: Text(cmd['input'] ?? 'Unknown'),
-                subtitle: Text('${cmd['status']} • ${cmd['timestamp']}'),
-                leading: Icon(
-                  cmd['status'] == 'success' ? Icons.check_circle : Icons.error,
-                  color: cmd['status'] == 'success' ? Colors.green : Colors.red,
+          child: _commandHistory.isEmpty
+              ? const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text('No past commands logged', style: TextStyle(color: Color(0xFF8A94A6))),
+                )
+              : ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _commandHistory.length,
+                  itemBuilder: (context, index) {
+                    final cmd = _commandHistory[index];
+                    return ListTile(
+                      title: Text(cmd['input'] ?? 'Unknown', style: const TextStyle(color: Colors.white)),
+                      subtitle: Text('${cmd['status']} • ${cmd['timestamp']}', style: const TextStyle(color: Color(0xFF8A94A6), fontSize: 12)),
+                      leading: Icon(
+                        cmd['status'] == 'success' ? Icons.check_circle : Icons.error,
+                        color: cmd['status'] == 'success' ? const Color(0xFF00E676) : const Color(0xFFFF3D00),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close', style: TextStyle(color: Colors.white)),
+          ),
         ],
       ),
     );

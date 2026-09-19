@@ -7,48 +7,75 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using LocalLoop.Core;
+using Microsoft.Extensions.Logging;
 
 namespace LocalLoop.Service
 {
     public class WebSocketServer
     {
         private readonly PairingManager _pairingManager;
+        private readonly ILogger<WebSocketServer> _logger;
         private readonly ConcurrentDictionary<string, WebSocket> _connections = new();
 
         public event Func<string, Task>? MessageReceived;
 
-        public WebSocketServer(PairingManager pairingManager)
+        public WebSocketServer(PairingManager pairingManager, ILogger<WebSocketServer> logger)
         {
             _pairingManager = pairingManager;
+            _logger = logger;
         }
 
         public async Task StartAsync(int port)
         {
-            var httpListener = new HttpListener();
-            httpListener.Prefixes.Add($"http://localhost:{port}/");
-            httpListener.Start();
+            HttpListener? httpListener = null;
+            try
+            {
+                httpListener = new HttpListener();
+                httpListener.Prefixes.Add($"http://*:{port}/");
+                httpListener.Start();
+                _logger.LogInformation("WebSocket server listening on wildcard prefix http://*:{Port}/", port);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Wildcard binding failed ({Message}). Falling back to localhost & local IP prefixes.", ex.Message);
+                try { httpListener?.Close(); } catch { }
+
+                httpListener = new HttpListener();
+                httpListener.Prefixes.Add($"http://localhost:{port}/");
+                httpListener.Prefixes.Add($"http://127.0.0.1:{port}/");
+
+                try
+                {
+                    var host = Dns.GetHostEntry(Dns.GetHostName());
+                    foreach (var ip in host.AddressList.Where(a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork))
+                    {
+                        var prefix = $"http://{ip}:{port}/";
+                        if (!httpListener.Prefixes.Contains(prefix))
+                        {
+                            httpListener.Prefixes.Add(prefix);
+                        }
+                    }
+                    httpListener.Start();
+                    _logger.LogInformation("WebSocket server listening on local IP prefixes for port {Port}", port);
+                }
+                catch (Exception ipEx)
+                {
+                    _logger.LogWarning("Local IP binding requires URL reservation or admin elevation ({Message}). Falling back to localhost only.", ipEx.Message);
+                    try { httpListener.Close(); } catch { }
+                    httpListener = new HttpListener();
+                    httpListener.Prefixes.Add($"http://localhost:{port}/");
+                    httpListener.Prefixes.Add($"http://127.0.0.1:{port}/");
+                    httpListener.Start();
+                    _logger.LogInformation("WebSocket server successfully listening on localhost:{Port}", port);
+                }
+            }
 
             while (true)
             {
                 var context = await httpListener.GetContextAsync();
                 if (context.Request.IsWebSocketRequest)
                 {
-                    var signature = context.Request.Headers["X-LocalLoop-Signature"];
-                    var token = context.Request.QueryString["token"];
-
-                    if (string.IsNullOrEmpty(signature) || !_pairingManager.ValidateSignature(token ?? "", signature))
-                    {
-                        context.Response.StatusCode = 401;
-                        context.Response.Close();
-                        continue;
-                    }
-
-                    var webSocketContext = await context.AcceptWebSocketAsync(null);
-                    var socket = webSocketContext.WebSocket;
-                    var connectionId = Guid.NewGuid().ToString();
-                    _connections[connectionId] = socket;
-                    
-                    _ = HandleConnectionAsync(connectionId, socket);
+                    _ = HandleNewWebSocketRequest(context);
                 }
                 else
                 {
@@ -58,30 +85,131 @@ namespace LocalLoop.Service
             }
         }
 
+        private async Task HandleNewWebSocketRequest(HttpListenerContext context)
+        {
+            var publicKey = context.Request.QueryString["publicKey"];
+            var pairingSecret = context.Request.QueryString["pairingSecret"];
+
+            if (string.IsNullOrEmpty(publicKey))
+            {
+                context.Response.StatusCode = 401;
+                context.Response.Close();
+                return;
+            }
+
+            // Initial pairing flow
+            if (!string.IsNullOrEmpty(pairingSecret))
+            {
+                // Validate the pairing secret
+                if (_pairingManager.ValidatePairingSecret(pairingSecret))
+                {
+                    _pairingManager.RegisterKey(publicKey);
+                    _pairingManager.InvalidatePairingSecret(); // Single-use token burn
+                }
+            }
+
+            if (!_pairingManager.IsKeyRegistered(publicKey))
+            {
+                context.Response.StatusCode = 401;
+                context.Response.Close();
+                return;
+            }
+
+            var webSocketContext = await context.AcceptWebSocketAsync(null);
+            var socket = webSocketContext.WebSocket;
+
+            // Challenge-Response Auth Phase with timestamped nonce
+            var challenge = _pairingManager.GenerateChallenge();
+            var challengeMsg = JsonSerializer.Serialize(new { type = "auth_challenge", challenge });
+            await socket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(challengeMsg)), WebSocketMessageType.Text, true, CancellationToken.None);
+
+            var buffer = new byte[1024 * 4];
+            var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            
+            if (result.MessageType == WebSocketMessageType.Text)
+            {
+                var msgText = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                try
+                {
+                    using var doc = JsonDocument.Parse(msgText);
+                    if (doc.RootElement.TryGetProperty("type", out var typeEl) && typeEl.GetString() == "auth_response" &&
+                        doc.RootElement.TryGetProperty("signature", out var sigEl))
+                    {
+                        var signature = sigEl.GetString() ?? "";
+                        if (_pairingManager.ValidateSignature(challenge, signature, publicKey))
+                        {
+                            var connectionId = Guid.NewGuid().ToString();
+                            _connections[connectionId] = socket;
+                            
+                            // Acknowledge auth
+                            var ackMsg = JsonSerializer.Serialize(new { type = "auth_ack" });
+                            await socket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(ackMsg)), WebSocketMessageType.Text, true, CancellationToken.None);
+
+                            _ = HandleConnectionAsync(connectionId, socket);
+                            return; // Auth successful, exit handshake
+                        }
+                    }
+                }
+                catch { /* Parse error */ }
+            }
+
+            // Auth failed
+            await socket.CloseAsync(WebSocketCloseStatus.PolicyViolation, "Authentication Failed", CancellationToken.None);
+        }
+
         private async Task HandleConnectionAsync(string connectionId, WebSocket webSocket)
         {
-            var buffer = new byte[1024 * 4];
+            var buffer = new byte[1024 * 8];
             while (webSocket.State == WebSocketState.Open)
             {
                 try
                 {
-                    var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                    if (result.MessageType == WebSocketMessageType.Close)
+                    using var ms = new MemoryStream();
+                    WebSocketReceiveResult result;
+                    do
                     {
-                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
-                        break;
+                        result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                        if (result.MessageType == WebSocketMessageType.Close)
+                        {
+                            await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                            _connections.TryRemove(connectionId, out _);
+                            return;
+                        }
+
+                        ms.Write(buffer, 0, result.Count);
                     }
-                    else if (result.MessageType == WebSocketMessageType.Text)
+                    while (!result.EndOfMessage);
+
+                    if (result.MessageType == WebSocketMessageType.Text)
                     {
-                        var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        var message = Encoding.UTF8.GetString(ms.ToArray());
+
+                        // Heartbeat ping handling
+                        try
+                        {
+                            using var doc = JsonDocument.Parse(message);
+                            if (doc.RootElement.TryGetProperty("type", out var typeEl) && typeEl.GetString() == "ping")
+                            {
+                                var pong = JsonSerializer.Serialize(new { type = "pong", timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() });
+                                await webSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(pong)), WebSocketMessageType.Text, true, CancellationToken.None);
+                                continue;
+                            }
+                        }
+                        catch { /* Regular message payload */ }
+
                         if (MessageReceived != null)
                         {
                             await MessageReceived(message);
                         }
                     }
                 }
-                catch (Exception)
+                catch (WebSocketException)
                 {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing incoming frame on connection {ConnectionId}", connectionId);
                     break;
                 }
             }
@@ -95,24 +223,23 @@ namespace LocalLoop.Service
             
             foreach (var kvp in _connections)
             {
+                var connId = kvp.Key;
+                var socket = kvp.Value;
+                if (socket.State != WebSocketState.Open)
+                {
+                    _connections.TryRemove(connId, out _);
+                    continue;
+                }
+
                 try
                 {
-                    if (kvp.Value.State == WebSocketState.Open)
-                    {
-                        await kvp.Value.SendAsync(segment, WebSocketMessageType.Text, true, CancellationToken.None);
-                    }
+                    await socket.SendAsync(segment, WebSocketMessageType.Text, true, CancellationToken.None);
                 }
                 catch
                 {
-                    // Ignore send errors, connection will be cleaned up
+                    _connections.TryRemove(connId, out _);
                 }
             }
-        }
-
-        public async Task SendToDeviceAsync(string deviceId, string message)
-        {
-            // For now, broadcast to all connections. In the future, track deviceId per connection.
-            await BroadcastAsync(message);
         }
     }
 }

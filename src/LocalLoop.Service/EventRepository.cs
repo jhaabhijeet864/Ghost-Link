@@ -23,13 +23,20 @@ namespace LocalLoop.Service
             
             var tableCmd = connection.CreateCommand();
             tableCmd.CommandText = @"
+                PRAGMA journal_mode = WAL;
+                PRAGMA synchronous = NORMAL;
+                PRAGMA foreign_keys = ON;
+
                 CREATE TABLE IF NOT EXISTS Events (
                     Id TEXT PRIMARY KEY,
                     SessionId TEXT NOT NULL,
                     Type TEXT NOT NULL,
                     Timestamp TEXT NOT NULL,
                     Payload TEXT NOT NULL
-                )";
+                );
+
+                CREATE INDEX IF NOT EXISTS IX_Events_SessionId_Timestamp 
+                ON Events (SessionId, Timestamp ASC);";
             tableCmd.ExecuteNonQuery();
         }
 

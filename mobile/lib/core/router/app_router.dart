@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/observe/presentation/observe_screen.dart';
 import '../../features/command/command_composer_screen.dart';
 import '../../features/command/approval_inbox_screen.dart';
+import '../../features/observe/presentation/pairing_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -11,7 +12,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => const DefaultScreen(),
+        builder: (context, state) => const PairingScreen(),
       ),
       GoRoute(
         path: '/pair',

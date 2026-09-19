@@ -11,6 +11,7 @@ builder.Services.AddSingleton<IAuditLogger, AuditLogger>();
 builder.Services.AddSingleton<PairingManager>();
 builder.Services.AddSingleton<WebSocketServer>();
 
+builder.Services.AddHostedService<mDNSAdvertiser>();
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();

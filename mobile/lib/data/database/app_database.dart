@@ -19,16 +19,30 @@ class AppDatabase {
     String path = join(await getDatabasesPath(), 'localloop.db');
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
+      onConfigure: (db) async {
+        await db.execute('PRAGMA journal_mode = WAL');
+        await db.execute('PRAGMA synchronous = NORMAL');
+      },
       onCreate: (db, version) async {
         await _createTables(db);
+        await _createIndexes(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           await _createTables(db);
         }
+        if (oldVersion < 3) {
+          await _createIndexes(db);
+        }
       },
     );
+  }
+
+  Future<void> _createIndexes(Database db) async {
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_events_session ON events (session_id, timestamp)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cmd_device ON command_history (device_id, timestamp)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_approval_device ON approval_history (device_id, timestamp)');
   }
 
   Future<void> _createTables(Database db) async {
@@ -81,6 +95,22 @@ class AppDatabase {
       'timestamp': event['timestamp'],
       'payload': jsonEncode(event['payload']),
     });
+  }
+
+  Future<void> insertEventsBatch(List<Map<String, dynamic>> items) async {
+    if (items.isEmpty) return;
+    final db = await database;
+    final batch = db.batch();
+    for (final event in items) {
+      batch.insert('events', {
+        'id': event['id'],
+        'session_id': event['session_id'],
+        'type': event['type'],
+        'timestamp': event['timestamp'],
+        'payload': jsonEncode(event['payload']),
+      });
+    }
+    await batch.commit(noResult: true);
   }
 
   Future<List<Map<String, dynamic>>> getEvents() async {

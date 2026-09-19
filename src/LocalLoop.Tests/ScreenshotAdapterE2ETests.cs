@@ -30,8 +30,8 @@ namespace LocalLoop.Tests
 
             await adapter.ExecuteAsync(intent, context);
 
-            Assert.Contains(eventsFired, e => e.Type == "screenshot_result");
-            var screenshotEvent = eventsFired.Find(e => e.Type == "screenshot_result");
+            Assert.Contains(eventsFired, e => e.Type == "screenshot_captured");
+            var screenshotEvent = eventsFired.Find(e => e.Type == "screenshot_captured");
             Assert.NotNull(screenshotEvent);
             Assert.NotNull(screenshotEvent.Payload);
             // Verify payload is a non-empty base64 string
