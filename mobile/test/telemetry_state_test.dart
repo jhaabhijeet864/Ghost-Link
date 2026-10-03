@@ -4,7 +4,7 @@ import 'package:local_loop/core/state/telemetry_state.dart';
 
 void main() {
   group('TelemetryState & Filtering Tests', () {
-    final log1 = TelemetryLogItem(
+    const log1 = TelemetryLogItem(
       id: '1',
       timestamp: '10:00:00',
       tag: 'LOG',
@@ -14,7 +14,7 @@ void main() {
       category: TelemetryFilter.logs,
     );
 
-    final diff1 = TelemetryLogItem(
+    const diff1 = TelemetryLogItem(
       id: '2',
       timestamp: '10:00:05',
       tag: 'DIFF',
@@ -24,7 +24,7 @@ void main() {
       category: TelemetryFilter.diffs,
     );
 
-    final err1 = TelemetryLogItem(
+    const err1 = TelemetryLogItem(
       id: '3',
       timestamp: '10:00:10',
       tag: 'ERR',

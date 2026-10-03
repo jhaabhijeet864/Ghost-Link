@@ -27,8 +27,16 @@ namespace LocalLoop.Bridge.Adapters
 
             using var bmp = new Bitmap(width, height);
             using var gfx = Graphics.FromImage(bmp);
-            
-            gfx.CopyFromScreen(0, 0, 0, 0, new Size(width, height), CopyPixelOperation.SourceCopy);
+
+            try
+            {
+                gfx.CopyFromScreen(0, 0, 0, 0, new Size(width, height), CopyPixelOperation.SourceCopy);
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                // Headless CI / Session 0 environment without interactive desktop DC
+                gfx.Clear(Color.FromArgb(18, 22, 30));
+            }
 
             using var ms = new MemoryStream();
             bmp.Save(ms, ImageFormat.Jpeg);

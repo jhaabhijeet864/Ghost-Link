@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../network/websocket_client.dart';
 
 class AppLifecycleManager with WidgetsBindingObserver {
