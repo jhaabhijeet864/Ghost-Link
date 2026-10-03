@@ -35,12 +35,12 @@ void main() {
     );
 
     test('Filter returns all logs when activeFilter is all', () {
-      final state = TelemetryState(allLogs: [log1, diff1, err1]);
+      const state = TelemetryState(allLogs: [log1, diff1, err1]);
       expect(state.filteredLogs.length, 3);
     });
 
     test('Filter returns only matching category', () {
-      final state = TelemetryState(
+      const state = TelemetryState(
         allLogs: [log1, diff1, err1],
         activeFilter: TelemetryFilter.diffs,
       );
@@ -49,7 +49,7 @@ void main() {
     });
 
     test('Search query filters across message and tag', () {
-      final state = TelemetryState(
+      const state = TelemetryState(
         allLogs: [log1, diff1, err1],
         searchQuery: 'compile',
       );

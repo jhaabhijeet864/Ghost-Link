@@ -21,9 +21,7 @@ class AppBottomNavigation extends ConsumerWidget {
 
     final tabs = [
       _NavTab(icon: Icons.inbox_outlined, activeIcon: Icons.inbox_rounded, label: 'Inbox', badgeCount: pendingCount),
-      _NavTab(icon: Icons.terminal_outlined, activeIcon: Icons.terminal_rounded, label: 'Sessions'),
-      _NavTab(icon: Icons.dns_outlined, activeIcon: Icons.dns_rounded, label: 'Machines'),
-      _NavTab(icon: Icons.folder_open_outlined, activeIcon: Icons.folder_rounded, label: 'Projects'),
+      _NavTab(icon: Icons.folder_open_outlined, activeIcon: Icons.folder_rounded, label: 'Workspaces'),
       _NavTab(icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded, label: 'Settings'),
     ];
 

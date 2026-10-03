@@ -15,7 +15,6 @@ class NewSessionScreen extends ConsumerStatefulWidget {
 
 class _NewSessionScreenState extends ConsumerState<NewSessionScreen> {
   final TextEditingController _instructionController = TextEditingController();
-  bool _askBeforeRiskyActions = true;
 
   @override
   void dispose() {
@@ -40,7 +39,7 @@ class _NewSessionScreenState extends ConsumerState<NewSessionScreen> {
           const SizedBox(height: AppSpacing.large),
 
           // Instruction Field
-          Text('Instruction', style: AppTypography.sectionTitle),
+          const Text('Instruction', style: AppTypography.sectionTitle),
           const SizedBox(height: AppSpacing.small),
           TextField(
             controller: _instructionController,
@@ -68,7 +67,7 @@ class _NewSessionScreenState extends ConsumerState<NewSessionScreen> {
           const SizedBox(height: AppSpacing.large),
 
           // Context
-          Text('Context', style: AppTypography.sectionTitle),
+          const Text('Context', style: AppTypography.sectionTitle),
           const SizedBox(height: AppSpacing.small),
           Wrap(
             spacing: AppSpacing.small,
@@ -81,13 +80,13 @@ class _NewSessionScreenState extends ConsumerState<NewSessionScreen> {
           const SizedBox(height: AppSpacing.large),
 
           // Policy
-          Text('Execution policy', style: AppTypography.sectionTitle),
+          const Text('Execution policy', style: AppTypography.sectionTitle),
           const SizedBox(height: AppSpacing.small),
           _buildDropdownSection('Ask before risky actions', ''),
           const SizedBox(height: AppSpacing.large),
 
           // Notifications
-          Text('Notifications', style: AppTypography.sectionTitle),
+          const Text('Notifications', style: AppTypography.sectionTitle),
           const SizedBox(height: AppSpacing.small),
           Wrap(
             spacing: AppSpacing.small,

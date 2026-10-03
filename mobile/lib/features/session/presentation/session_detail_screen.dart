@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_scaffold.dart';
 import 'widgets/terminal_tab.dart';
 import 'widgets/diff_tab.dart';
 import 'widgets/tests_tab.dart';
@@ -63,7 +62,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen>
               'Running · 8m 42s',
               style: AppTypography.caption.copyWith(color: AppColors.info),
             ),
-            Text(
+            const Text(
               'CRM API · feature/timeouts',
               style: AppTypography.caption,
             ),
@@ -95,7 +94,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen>
                 padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.standard,
                     vertical: AppSpacing.small),
-                child: Row(
+                child: const Row(
                   children: [
                     Expanded(
                       child: Column(
@@ -155,7 +154,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen>
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.standard),
       children: [
-        Text('Latest agent message', style: AppTypography.sectionTitle),
+        const Text('Latest agent message', style: AppTypography.sectionTitle),
         const SizedBox(height: AppSpacing.small),
         Container(
           padding: const EdgeInsets.all(AppSpacing.standard),
@@ -163,13 +162,13 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen>
             color: AppColors.surfaceElevated,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Text(
+          child: const Text(
             'I have modified the timeout limits on the HTTP client but two integration tests are failing because they expect the old timeout limit. I will now run the tests again.',
             style: AppTypography.body,
           ),
         ),
         const SizedBox(height: AppSpacing.large),
-        Text('Suggested next actions', style: AppTypography.sectionTitle),
+        const Text('Suggested next actions', style: AppTypography.sectionTitle),
         const SizedBox(height: AppSpacing.small),
         ElevatedButton(
           onPressed: () {},
@@ -199,7 +198,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen>
                 style: AppTypography.code.copyWith(color: AppColors.textMuted),
               ),
               const SizedBox(width: AppSpacing.standard),
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -207,7 +206,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen>
                       children: [
                         Icon(Icons.terminal,
                             size: 14, color: AppColors.textSecondary),
-                        const SizedBox(width: AppSpacing.micro),
+                        SizedBox(width: AppSpacing.micro),
                         Text('[agent]', style: AppTypography.caption),
                       ],
                     ),

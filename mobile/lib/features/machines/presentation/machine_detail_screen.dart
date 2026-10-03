@@ -88,7 +88,7 @@ class MachineDetailScreen extends StatelessWidget {
             const SizedBox(width: AppSpacing.standard),
             Text(label, style: AppTypography.body.copyWith(color: color)),
             const Spacer(),
-            Icon(Icons.chevron_right, color: AppColors.textMuted, size: 20),
+            const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 20),
           ],
         ),
       ),

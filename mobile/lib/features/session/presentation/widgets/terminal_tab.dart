@@ -53,7 +53,7 @@ SUCCESS: Integration tests completed in 14.2s.
                 ],
               ),
               const SizedBox(height: AppSpacing.small),
-              Text(
+              const Text(
                 'CWD: /ghost-link/mobile',
                 style: AppTypography.caption,
               ),
@@ -66,7 +66,7 @@ SUCCESS: Integration tests completed in 14.2s.
             color: AppColors.background,
             child: ListView(
               padding: const EdgeInsets.all(AppSpacing.standard),
-              children: [
+              children: const [
                 Text(
                   mockOutput,
                   style: AppTypography.code,

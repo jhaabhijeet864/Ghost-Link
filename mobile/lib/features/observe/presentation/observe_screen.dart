@@ -162,12 +162,12 @@ class _ObserveScreenState extends ConsumerState<ObserveScreen> {
                   const SizedBox(height: 10),
 
                   if (filteredLogs.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 40),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40),
                       child: Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Icon(Icons.filter_list_off, size: 36, color: AppColors.textMuted),
                             SizedBox(height: 12),
                             Text(
@@ -263,7 +263,7 @@ class _ObserveScreenState extends ConsumerState<ObserveScreen> {
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
                   const SizedBox(height: 20),
                 ],
               ),

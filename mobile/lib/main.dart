@@ -30,7 +30,6 @@ class LocalLoopApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.dark,
       darkTheme: ThemeData.dark().copyWith(
-        useMaterial3: true,
         scaffoldBackgroundColor: obsidianBg,
         canvasColor: gunmetalSurface,
         cardColor: gunmetalSurface,

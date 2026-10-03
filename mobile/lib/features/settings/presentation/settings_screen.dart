@@ -491,7 +491,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         Switch(
           value: value,
-          activeColor: AppColors.accent,
+          activeThumbColor: AppColors.accent,
           activeTrackColor: AppColors.accent.withValues(alpha: 0.3),
           inactiveThumbColor: AppColors.textMuted,
           inactiveTrackColor: AppColors.surfacePressed,

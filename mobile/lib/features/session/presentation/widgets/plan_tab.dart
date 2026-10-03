@@ -11,7 +11,7 @@ class PlanTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.standard),
       children: [
-        Row(
+        const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Execution Plan', style: AppTypography.sectionTitle),

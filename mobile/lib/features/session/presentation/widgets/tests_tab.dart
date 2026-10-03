@@ -12,7 +12,7 @@ class TestsTab extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.standard),
       children: [
         // Header
-        Text('Integration tests', style: AppTypography.sectionTitle),
+        const Text('Integration tests', style: AppTypography.sectionTitle),
         const SizedBox(height: AppSpacing.small),
         Row(
           children: [
@@ -24,12 +24,12 @@ class TestsTab extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.small),
-        Text('Duration: 1m 12s', style: AppTypography.caption),
+        const Text('Duration: 1m 12s', style: AppTypography.caption),
         
         const SizedBox(height: AppSpacing.large),
         
         // Failures
-        Text('Failures', style: AppTypography.sectionTitle),
+        const Text('Failures', style: AppTypography.sectionTitle),
         const SizedBox(height: AppSpacing.small),
         _buildFailureRow('test/integration/websocket_test.dart', 'Timeout expected 2000ms but got 5000ms'),
         const SizedBox(height: AppSpacing.small),

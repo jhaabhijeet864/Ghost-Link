@@ -30,7 +30,7 @@ class SessionReviewScreen extends ConsumerWidget {
             _buildSection('Adapter', 'Antigravity Desktop'),
             const SizedBox(height: AppSpacing.large),
 
-            Text('Instruction', style: AppTypography.caption),
+            const Text('Instruction', style: AppTypography.caption),
             const SizedBox(height: AppSpacing.micro),
             Text(
               instruction.isEmpty ? 'No instruction provided' : instruction,
@@ -38,9 +38,9 @@ class SessionReviewScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.large),
 
-            Text('Constraints', style: AppTypography.caption),
+            const Text('Constraints', style: AppTypography.caption),
             const SizedBox(height: AppSpacing.micro),
-            Text('Do not commit or push.', style: AppTypography.body),
+            const Text('Do not commit or push.', style: AppTypography.body),
             const SizedBox(height: AppSpacing.large),
 
             Row(
@@ -77,7 +77,7 @@ class SessionReviewScreen extends ConsumerWidget {
               width: double.infinity,
               child: TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text('Edit', style: AppTypography.button),
+                child: const Text('Edit', style: AppTypography.button),
               ),
             ),
           ],

@@ -8,10 +8,12 @@ class AppTheme {
     return ThemeData(
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.background,
-      colorScheme: const ColorScheme.dark(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppColors.accent,
+        brightness: Brightness.dark,
+        surface: AppColors.surface,
         primary: AppColors.accent,
         secondary: AppColors.accent,
-        surface: AppColors.surface,
         error: AppColors.danger,
         onPrimary: AppColors.textPrimary,
         onSecondary: AppColors.textPrimary,

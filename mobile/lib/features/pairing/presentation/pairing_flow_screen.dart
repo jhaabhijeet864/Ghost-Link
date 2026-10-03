@@ -140,11 +140,11 @@ class _PairingFlowScreenState extends State<PairingFlowScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Machine: Rajesh-Workstation', style: AppTypography.body),
+                const Text('Machine: Rajesh-Workstation', style: AppTypography.body),
                 const SizedBox(height: AppSpacing.small),
-                Text('Connection: Local network', style: AppTypography.body),
+                const Text('Connection: Local network', style: AppTypography.body),
                 const SizedBox(height: AppSpacing.large),
-                Text('Verification phrase:', style: AppTypography.caption),
+                const Text('Verification phrase:', style: AppTypography.caption),
                 const SizedBox(height: 4),
                 Text('BLUE RIVER 482', style: AppTypography.screenTitle.copyWith(color: AppColors.accent, letterSpacing: 2)),
               ],
@@ -261,7 +261,7 @@ class _PairingFlowScreenState extends State<PairingFlowScreen> {
             const SizedBox(width: AppSpacing.standard),
             Text(title, style: AppTypography.body.copyWith(fontWeight: FontWeight.bold, fontSize: 16)),
             const Spacer(),
-            Icon(Icons.chevron_right, color: AppColors.textMuted),
+            const Icon(Icons.chevron_right, color: AppColors.textMuted),
           ],
         ),
       ),

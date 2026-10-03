@@ -81,10 +81,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   Widget build(BuildContext context) {
     final screens = [
       const HomeScreen(),
-      const SessionsListScreen(),
-      MachinesListScreen(
-        onNavigateTab: _onDestinationSelected, // Temporary until routing is fully implemented
-      ),
       WorkspacesDashboardScreen(
         onNavigateTab: _onDestinationSelected, // Temporary until routing is fully implemented
       ),

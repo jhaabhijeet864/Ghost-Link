@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.local_loop"
+    namespace = "com.ghostlink.localloop"
     compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
@@ -15,26 +15,48 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.local_loop"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        // Application ID for Ghost-Link (LocalLoop) mobile app
+        applicationId = "com.ghostlink.localloop"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
-        // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
-        // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
-        // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    // Signing configurations - release keystore should be configured via gradle.properties or local.properties
+    signingConfigs {
+        create("release") {
+            // Keystore configuration - set these in gradle.properties or local.properties:
+            // storeFile=../keystore/release.keystore
+            // storePassword=RELEASE_STORE_PASSWORD
+            // keyAlias=release
+            // keyPassword=RELEASE_KEY_PASSWORD
+            val storeFile = project.findProperty("storeFile") as String?
+            val storePassword = project.findProperty("storePassword") as String?
+            val keyAlias = project.findProperty("keyAlias") as String?
+            val keyPassword = project.findProperty("keyPassword") as String?
+
+            if (storeFile != null && storePassword != null && keyAlias != null && keyPassword != null) {
+                storeFile = file(storeFile)
+                storePassword = storePassword.toString()
+                keyAlias = keyAlias.toString()
+                keyPassword = keyPassword.toString()
+            } else {
+                // Fallback to debug config for development builds only
+                throw GradleException("Release keystore not configured. Set storeFile, storePassword, keyAlias, keyPassword in gradle.properties or local.properties")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = false
-            isShrinkResources = false
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }

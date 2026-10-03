@@ -1,59 +1,59 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Pure Gunmetal & Metal Black Dark Palette
-  static const background = Color(0xFF060709);
-  static const surface = Color(0xFF0C0E12);
-  static const surfaceElevated = Color(0xFF12161E);
-  static const surfacePressed = Color(0xFF191F2B);
-  static const surfaceGlass = Color(0xF20C0E12);
+  // Professional Neutral Dark Palette
+  static const background = Color(0xFF0F1115);
+  static const surface = Color(0xFF16181D);
+  static const surfaceElevated = Color(0xFF1E2128);
+  static const surfacePressed = Color(0xFF262A33);
+  static const surfaceGlass = Color(0xF216181D);
   
-  // Industrial Machined Metal Borders
-  static const border = Color(0xFF1E2430);
+  // Neutral Borders
+  static const border = Color(0xFF2A2E37);
   static const borderSubtle = Color(0x14FFFFFF);
-  static const borderHighlight = Color(0x3300E676);
-  static const borderMetal = Color(0xFF2D3545);
+  static const borderHighlight = Color(0x333B82F6);
+  static const borderMetal = Color(0xFF2A2E37);
 
-  // Titanium & Crisp Text
+  // Clean Text
   static const textPrimary = Color(0xFFF1F5F9);
   static const textSecondary = Color(0xFF94A3B8);
-  static const textMuted = Color(0xFF526075);
+  static const textMuted = Color(0xFF64748B);
 
-  // Stealth Metal & Electric Emerald Accents
-  static const accent = Color(0xFF00E676); // Tactical Neon Green
-  static const accentLight = Color(0xFF69F0AE);
-  static const accentGlow = Color(0x3300E676);
-  static const accentCyan = Color(0xFF00E5FF);
+  // Trustworthy Blue Accents
+  static const accent = Color(0xFF3B82F6); // Professional Blue
+  static const accentLight = Color(0xFF60A5FA);
+  static const accentGlow = Color(0x333B82F6);
+  static const accentCyan = Color(0xFF38BDF8);
 
-  static const success = Color(0xFF00E676);
-  static const successGlow = Color(0x2600E676);
+  static const success = Color(0xFF10B981);
+  static const successGlow = Color(0x2610B981);
 
-  static const warning = Color(0xFFFFB300);
-  static const warningGlow = Color(0x26FFB300);
+  static const warning = Color(0xFFF59E0B);
+  static const warningGlow = Color(0x26F59E0B);
 
-  static const danger = Color(0xFFFF5252);
+  static const danger = Color(0xFFEF4444);
   static const error = danger;
-  static const dangerGlow = Color(0x26FF5252);
+  static const dangerGlow = Color(0x26EF4444);
 
-  static const info = Color(0xFF40C4FF);
+  static const info = Color(0xFF3B82F6);
   static const neutral = Color(0xFF475569);
   static const primary = accent;
 
-  // Metallic Brushed Gradients
+  // Professional Gradients
   static const LinearGradient metalCardGradient = LinearGradient(
-    colors: [Color(0xFF131720), Color(0xFF0A0C10)],
+    colors: [Color(0xFF1A1D24), Color(0xFF13151A)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient metalHeaderGradient = LinearGradient(
-    colors: [Color(0xFF171C26), Color(0xFF0D1016)],
+    colors: [Color(0xFF1A1D24), Color(0xFF13151A)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
 
   static const LinearGradient greenAccentGradient = LinearGradient(
-    colors: [Color(0xFF00E676), Color(0xFF00B0FF)],
+    colors: [Color(0xFF3B82F6), Color(0xFF38BDF8)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

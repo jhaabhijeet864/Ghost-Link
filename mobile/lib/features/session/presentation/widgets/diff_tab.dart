@@ -12,7 +12,7 @@ class DiffTab extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.standard),
       children: [
         // Summary
-        Text('Changed Files (2)', style: AppTypography.sectionTitle),
+        const Text('Changed Files (2)', style: AppTypography.sectionTitle),
         const SizedBox(height: AppSpacing.small),
         
         // File Diff Card

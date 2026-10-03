@@ -214,7 +214,7 @@ class MachinesListScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildDetailSnippet('LINK', 'Encrypted Tunnel'),
+                      _buildDetailSnippet('LINK', 'Ed25519 Signed'),
                       _buildDetailSnippet('CONTROL', 'Direct Core'),
                       _buildDetailSnippet('STATUS', 'Ready'),
                     ],

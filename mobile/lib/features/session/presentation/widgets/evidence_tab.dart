@@ -35,7 +35,7 @@ class EvidenceTab extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.large),
         
-        Text('Execution Details', style: AppTypography.sectionTitle),
+        const Text('Execution Details', style: AppTypography.sectionTitle),
         const SizedBox(height: AppSpacing.standard),
         
         _buildDetailRow('Target Application', 'Google Chrome'),
@@ -47,7 +47,7 @@ class EvidenceTab extends StatelessWidget {
         _buildDetailRow('Timestamp', '2023-10-25 14:32:01 UTC'),
         
         const SizedBox(height: AppSpacing.large),
-        Text('Screenshot', style: AppTypography.sectionTitle),
+        const Text('Screenshot', style: AppTypography.sectionTitle),
         const SizedBox(height: AppSpacing.small),
         
         Container(
@@ -58,12 +58,12 @@ class EvidenceTab extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.border),
           ),
-          child: Center(
+          child: const Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.image, size: 48, color: AppColors.neutral),
-                const SizedBox(height: AppSpacing.small),
+                Icon(Icons.image, size: 48, color: AppColors.neutral),
+                SizedBox(height: AppSpacing.small),
                 Text('Screenshot not available in mock mode', style: AppTypography.caption),
               ],
             ),

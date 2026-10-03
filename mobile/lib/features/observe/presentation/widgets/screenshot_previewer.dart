@@ -98,9 +98,9 @@ class ScreenshotPreviewer extends StatelessWidget {
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(color: const Color(0xFF2A2E39)),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: const [
+                              children: [
                                 Icon(Icons.zoom_in, color: Colors.white, size: 14),
                                 SizedBox(width: 4),
                                 Text(
@@ -113,10 +113,10 @@ class ScreenshotPreviewer extends StatelessWidget {
                         ),
                       ],
                     )
-                  : Center(
+                  : const Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
+                        children: [
                           Icon(Icons.desktop_windows_outlined, size: 40, color: Color(0xFF8A94A6)),
                           SizedBox(height: 8),
                           Text(

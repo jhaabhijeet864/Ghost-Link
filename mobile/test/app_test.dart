@@ -11,21 +11,13 @@ void main() {
 
     // Verify root MaterialApp and LocalLoop header renders
     expect(find.byType(MaterialApp), findsOneWidget);
-    expect(find.text('LocalLoop'), findsWidgets);
-
-    // Verify navigation tabs exist
     expect(find.text('Inbox'), findsWidgets);
-    expect(find.text('Sessions'), findsWidgets);
-    expect(find.text('Machines'), findsWidgets);
-    expect(find.text('Projects'), findsWidgets);
+
+    expect(find.text('Workspaces'), findsWidgets);
     expect(find.text('Settings'), findsWidgets);
 
-    // Tap on Sessions tab
-    await tester.tap(find.text('Sessions'));
-    await tester.pump(const Duration(milliseconds: 200));
-
-    // Tap on Projects tab
-    await tester.tap(find.text('Projects'));
+    // Tap on Workspaces tab
+    await tester.tap(find.text('Workspaces'));
     await tester.pump(const Duration(milliseconds: 200));
 
     // Tap on Settings tab

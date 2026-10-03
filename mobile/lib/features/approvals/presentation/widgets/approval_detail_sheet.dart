@@ -83,9 +83,25 @@ class _ApprovalDetailSheetState extends ConsumerState<ApprovalDetailSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Approval Request',
-                style: AppTypography.cardTitle,
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: widget.intent.riskLevel.toLowerCase() == 'high' ? AppColors.danger.withValues(alpha: 0.1) : AppColors.warning.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      widget.intent.riskLevel.toLowerCase() == 'high' ? '🚨 HIGH RISK' : '⚠️ MEDIUM',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.0,
+                        color: widget.intent.riskLevel.toLowerCase() == 'high' ? AppColors.danger : AppColors.warning,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -116,7 +132,7 @@ class _ApprovalDetailSheetState extends ConsumerState<ApprovalDetailSheet> {
           _buildInfoRow('Directory', widget.intent.workingDirectory),
           
           const SizedBox(height: AppSpacing.large),
-          Text('Command to Execute', style: AppTypography.sectionTitle),
+          const Text('Command to Execute', style: AppTypography.sectionTitle),
           const SizedBox(height: AppSpacing.small),
           Container(
             width: double.infinity,
@@ -136,7 +152,7 @@ class _ApprovalDetailSheetState extends ConsumerState<ApprovalDetailSheet> {
           ),
           
           const SizedBox(height: AppSpacing.large),
-          Text('Reasoning', style: AppTypography.sectionTitle),
+          const Text('Reasoning', style: AppTypography.sectionTitle),
           const SizedBox(height: AppSpacing.small),
           Text(
             widget.intent.reasoning,

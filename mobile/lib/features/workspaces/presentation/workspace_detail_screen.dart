@@ -24,7 +24,7 @@ class WorkspaceDetailScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('CRM API', style: AppTypography.display),
+              const Text('CRM API', style: AppTypography.display),
               const SizedBox(height: AppSpacing.small),
               Text('D:\\Projects\\crm-api', style: AppTypography.body.copyWith(color: AppColors.textMuted)),
               Text('feature/timeouts', style: AppTypography.code.copyWith(color: AppColors.accent)),
@@ -106,7 +106,7 @@ class WorkspaceDetailScreen extends StatelessWidget {
             const SizedBox(width: AppSpacing.standard),
             Text(label, style: AppTypography.body.copyWith(color: color)),
             const Spacer(),
-            Icon(Icons.chevron_right, color: AppColors.textMuted, size: 20),
+            const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 20),
           ],
         ),
       ),
