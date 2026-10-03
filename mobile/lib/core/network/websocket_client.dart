@@ -5,6 +5,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:multicast_dns/multicast_dns.dart';
 import '../security/crypto_manager.dart';
 import '../../data/database/isolate_worker.dart';
+import '../state/command_queue_manager.dart';
 import 'signed_envelope.dart';
 
 enum ConnectionStatus { disconnected, connecting, authenticating, connected }
@@ -41,6 +42,9 @@ class WebSocketClient {
   String? _lastIp;
   String? _lastPort;
   String? _lastPairingSecret;
+  String? get lastIp => _lastIp;
+  String? get lastPort => _lastPort;
+  String? get lastPairingSecret => _lastPairingSecret;
   void Function(String newIp, String newPort)? _onEndpointResolved;
 
   void _setStatus(ConnectionStatus status) {
@@ -155,11 +159,15 @@ class WebSocketClient {
           } else if (type == 'auth_ack') {
             _setStatus(ConnectionStatus.connected);
             _reconnectAttempts = 0;
+            _missedPongs = 0;
             _startHeartbeat();
             if (!authCompleter.isCompleted) {
               authCompleter.complete();
             }
+            // Auto flush any pending offline commands
+            CommandQueueManager().flush(this);
           } else if (type == 'pong') {
+            _missedPongs = 0;
             final sentTime = data['timestamp'] as int?;
             if (sentTime != null) {
               final rtt = DateTime.now().millisecondsSinceEpoch - sentTime;
@@ -188,10 +196,19 @@ class WebSocketClient {
     });
   }
 
+  int _missedPongs = 0;
+
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+    _missedPongs = 0;
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (_status == ConnectionStatus.connected && _channel != null) {
+        if (_missedPongs >= 2) {
+          // 2 consecutive missed pongs (10s) -> Assume socket is dead
+          _handleSocketClosed();
+          return;
+        }
+        _missedPongs++;
         try {
           _channel?.sink.add(jsonEncode({
             'type': 'ping',
@@ -214,7 +231,7 @@ class WebSocketClient {
 
   void _scheduleReconnect() {
     _reconnectTimer?.cancel();
-    final delaySeconds = (1 << _reconnectAttempts).clamp(1, 16);
+    final delaySeconds = (1 << _reconnectAttempts).clamp(1, 8);
     _reconnectAttempts++;
     _reconnectTimer = Timer(Duration(seconds: delaySeconds), () {
       if (_status == ConnectionStatus.disconnected && _lastIp != null) {

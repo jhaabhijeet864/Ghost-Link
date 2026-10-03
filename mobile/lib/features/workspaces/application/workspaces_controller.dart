@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/workspace.dart';
+import '../../../core/network/websocket_client.dart';
 import '../data/workspace_repository.dart';
 
 final workspaceRepositoryProvider = Provider<WorkspaceRepository>((ref) {
@@ -14,7 +15,14 @@ class WorkspacesController extends AsyncNotifier<List<Workspace>> {
   @override
   Future<List<Workspace>> build() async {
     final repo = ref.read(workspaceRepositoryProvider);
-    
+    final wsClient = WebSocketClient();
+
+    final statusSub = wsClient.statusStream.listen((status) {
+      if (status == ConnectionStatus.connected) {
+        refresh();
+      }
+    });
+
     final sub = repo.workspaceUpdates.listen((updatedWorkspace) {
       final currentList = state.valueOrNull;
       if (currentList != null) {
@@ -29,7 +37,10 @@ class WorkspacesController extends AsyncNotifier<List<Workspace>> {
       }
     });
     
-    ref.onDispose(() => sub.cancel());
+    ref.onDispose(() {
+      sub.cancel();
+      statusSub.cancel();
+    });
 
     return repo.getWorkspaces();
   }

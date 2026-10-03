@@ -623,17 +623,35 @@ namespace LocalLoop.Service
 
         private async Task HandleGetWorkspaces()
         {
-            var currentDir = Environment.CurrentDirectory;
+            var currentDir = "E:\\Ghost-Link";
+            string branchName = "main";
+            try
+            {
+                var headPath = Path.Combine(currentDir, ".git", "HEAD");
+                if (File.Exists(headPath))
+                {
+                    var headContent = File.ReadAllText(headPath).Trim();
+                    if (headContent.StartsWith("ref: refs/heads/"))
+                    {
+                        branchName = headContent.Substring("ref: refs/heads/".Length);
+                    }
+                }
+            }
+            catch { }
+
             var workspaces = new[]
             {
                 new 
                 {
-                    id = currentDir.GetHashCode().ToString(),
-                    name = Path.GetFileName(currentDir) ?? "Workspace",
+                    id = "ghost-link",
+                    name = "Ghost-Link",
                     path = currentDir,
-                    branch = "main",
-                    hasUncommittedChanges = false,
-                    lastAccessed = DateTime.UtcNow.ToString("O")
+                    branch = branchName,
+                    modifiedFiles = 0,
+                    failingTests = 0,
+                    activeSessions = 0,
+                    machineId = Environment.MachineName,
+                    status = "Clean"
                 }
             };
             var msg = new { type = "workspaces_list", data = workspaces };

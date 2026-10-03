@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/glass_card.dart';
 
 class WorkspaceCard extends StatelessWidget {
   final String title;
@@ -25,72 +25,68 @@ class WorkspaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.standard),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16.0), // Should match AppRadii.card
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.standard),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return GlassCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: AppTypography.cardTitle,
-              ),
-              const SizedBox(height: AppSpacing.micro),
-              Text(
-                '$branch · $modifiedFiles modified files',
-                style:
-                    AppTypography.body.copyWith(color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: AppSpacing.micro),
               Row(
                 children: [
-                  Icon(
-                    failingTests > 0
-                        ? Icons.error_outline
-                        : Icons.check_circle_outline,
-                    size: 16,
-                    color:
-                        failingTests > 0 ? AppColors.danger : AppColors.success,
-                  ),
-                  const SizedBox(width: AppSpacing.micro),
+                  const Icon(Icons.folder_outlined, size: 16, color: AppColors.accent),
+                  const SizedBox(width: 8),
                   Text(
-                    failingTests > 0
-                        ? '$failingTests failing tests'
-                        : 'All tests passing',
-                    style: AppTypography.caption.copyWith(
-                      color: failingTests > 0
-                          ? AppColors.danger
-                          : AppColors.success,
-                    ),
+                    title,
+                    style: AppTypography.cardTitle.copyWith(fontSize: 15),
                   ),
-                  const SizedBox(width: AppSpacing.standard),
-                  if (activeSessions > 0) ...[
-                    const Icon(
-                      Icons.play_circle_outline,
-                      size: 16,
-                      color: AppColors.info,
-                    ),
-                    const SizedBox(width: AppSpacing.micro),
-                    Text(
-                      '$activeSessions active session${activeSessions > 1 ? 's' : ''}',
-                      style:
-                          AppTypography.caption.copyWith(color: AppColors.info),
-                    ),
-                  ],
                 ],
               ),
-              const SizedBox(height: AppSpacing.small),
-              Text(
-                machine,
-                style: AppTypography.caption,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePressed,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.fork_right_rounded, size: 12, color: AppColors.textSecondary),
+                    const SizedBox(width: 3),
+                    Text(
+                      branch,
+                      style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontFamily: 'monospace'),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '$modifiedFiles changed files',
+                  style: const TextStyle(fontSize: 10, color: AppColors.accent, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'HOST: $machine',
+                style: AppTypography.caption.copyWith(color: AppColors.textMuted, fontSize: 10, fontFamily: 'monospace'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

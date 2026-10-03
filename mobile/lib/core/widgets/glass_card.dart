@@ -27,25 +27,24 @@ class GlassCard extends StatelessWidget {
       margin: margin,
       padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: gradient ?? AppColors.cardGradient,
-        borderRadius: BorderRadius.circular(16),
+        gradient: gradient ?? AppColors.metalCardGradient,
+        borderRadius: BorderRadius.circular(12),
         border: customBorder ?? Border.all(
-          color: glowColor != null ? glowColor!.withValues(alpha: 0.4) : AppColors.border,
+          color: glowColor != null ? glowColor!.withValues(alpha: 0.35) : AppColors.border,
           width: 1,
         ),
         boxShadow: [
           if (glowColor != null)
             BoxShadow(
-              color: glowColor!.withValues(alpha: 0.15),
-              blurRadius: 16,
-              spreadRadius: 0,
-              offset: const Offset(0, 4),
+              color: glowColor!.withValues(alpha: 0.12),
+              blurRadius: 12,
+              offset: const Offset(0, 2),
             )
           else
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withValues(alpha: 0.45),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
         ],
       ),
@@ -57,9 +56,9 @@ class GlassCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          splashColor: AppColors.accent.withValues(alpha: 0.1),
-          highlightColor: AppColors.surfacePressed.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(12),
+          splashColor: AppColors.accent.withValues(alpha: 0.08),
+          highlightColor: AppColors.surfacePressed.withValues(alpha: 0.3),
           child: content,
         ),
       );

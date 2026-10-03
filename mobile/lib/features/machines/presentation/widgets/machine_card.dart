@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/widgets/status_badge.dart';
-import '../../../../core/widgets/status_icon.dart';
+import '../../../../core/widgets/glass_card.dart';
 
 class MachineCard extends StatelessWidget {
   final String name;
@@ -25,77 +23,69 @@ class MachineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = isOnline ? AppColors.success : AppColors.textMuted;
-    final statusText = isOnline ? 'Online' : 'Offline';
-    final bridgeText = isBridgeReady ? 'Desktop bridge ready' : 'Bridge disconnected';
+    final statusColor = isOnline ? AppColors.accent : AppColors.textMuted;
+    final statusText = isOnline ? 'ONLINE' : 'OFFLINE';
 
-    return InkWell(
+    return GlassCard(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.standard),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceElevated,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
                     name,
-                    style: AppTypography.screenTitle.copyWith(fontSize: 18),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.cardTitle.copyWith(fontSize: 14, fontFamily: 'monospace'),
                   ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                 ),
-                Icon(
-                  Icons.shield,
-                  color: isOnline ? AppColors.success : AppColors.textMuted,
-                  size: 20,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.small),
-            Row(
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
+                child: Text(
+                  statusText,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
                     color: statusColor,
-                    shape: BoxShape.circle,
+                    fontFamily: 'monospace',
                   ),
                 ),
-                const SizedBox(width: AppSpacing.small),
-                Text(
-                  '$statusText · $bridgeText',
-                  style: AppTypography.body.copyWith(
-                    color: isOnline ? AppColors.textPrimary : AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.small),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '$activeSessions active sessions',
-                  style: AppTypography.caption,
-                ),
-                Text(
-                  'Last sync $lastSync',
-                  style: AppTypography.caption.copyWith(color: AppColors.textMuted),
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '$activeSessions active sessions • Desktop Bridge ready',
+                style: AppTypography.caption.copyWith(color: AppColors.textMuted, fontSize: 11),
+              ),
+              Text(
+                lastSync,
+                style: AppTypography.caption.copyWith(color: AppColors.textMuted, fontSize: 10),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
