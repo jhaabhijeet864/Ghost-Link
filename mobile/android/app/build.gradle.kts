@@ -24,6 +24,7 @@ android {
     }
 
     // Signing configurations - release keystore should be configured via gradle.properties or local.properties
+    // For debug builds, the default debug signing config is used automatically
     signingConfigs {
         create("release") {
             // Keystore configuration - set these in gradle.properties or local.properties:
@@ -31,18 +32,22 @@ android {
             // storePassword=RELEASE_STORE_PASSWORD
             // keyAlias=release
             // keyPassword=RELEASE_KEY_PASSWORD
-            val storeFile = project.findProperty("storeFile") as String?
-            val storePassword = project.findProperty("storePassword") as String?
-            val keyAlias = project.findProperty("keyAlias") as String?
-            val keyPassword = project.findProperty("keyPassword") as String?
+            val storeFileProp = project.findProperty("storeFile") as String?
+            val storePasswordProp = project.findProperty("storePassword") as String?
+            val keyAliasProp = project.findProperty("keyAlias") as String?
+            val keyPasswordProp = project.findProperty("keyPassword") as String?
 
-            if (storeFile != null && storePassword != null && keyAlias != null && keyPassword != null) {
-                storeFile = file(storeFile)
-                storePassword = storePassword.toString()
-                keyAlias = keyAlias.toString()
-                keyPassword = keyPassword.toString()
-            } else {
-                // Fallback to debug config for development builds only
+            // Only validate keystore config for release builds
+            // This allows debug builds to work without keystore configuration
+            val isReleaseBuild = project.gradle.startParameter.taskNames.any { it.contains("Release") || it.contains("release") }
+            
+            if (storeFileProp != null && storePasswordProp != null && keyAliasProp != null && keyPasswordProp != null) {
+                storeFile = file(storeFileProp)
+                storePassword = storePasswordProp.toString()
+                keyAlias = keyAliasProp.toString()
+                keyPassword = keyPasswordProp.toString()
+            } else if (isReleaseBuild) {
+                // Only throw error for release builds
                 throw GradleException("Release keystore not configured. Set storeFile, storePassword, keyAlias, keyPassword in gradle.properties or local.properties")
             }
         }

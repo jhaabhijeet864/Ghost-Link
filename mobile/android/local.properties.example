@@ -1,0 +1,19 @@
+# local.properties.example
+# Copy this file to local.properties and fill in your values
+# DO NOT COMMIT local.properties TO VERSION CONTROL
+
+# Flutter SDK path (auto-detected if Flutter is in PATH)
+# flutter.sdk=/path/to/flutter/sdk
+
+# Release keystore configuration
+# Generate keystore with:
+# keytool -genkey -v -keystore ../keystore/release.keystore -alias release -keyalg RSA -keysize 2048 -validity 10000
+# 
+# Then set these values (use local.properties for security, DO NOT COMMIT):
+# storeFile=../keystore/release.keystore
+# storePassword=YOUR_STORE_PASSWORD
+# keyAlias=release
+# keyPassword=YOUR_KEY_PASSWORD
+
+# For CI/CD, you can also set these as environment variables or CI secrets
+# and reference them in gradle.properties

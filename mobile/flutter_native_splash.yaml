@@ -1,0 +1,13 @@
+flutter_native_splash:
+  color: "#0F1115"
+  image: assets/images/localloop_logo.png
+  android_12:
+    image: assets/images/localloop_logo_android12.png
+    icon_background_color: "#0F1115"
+    image_dark: assets/images/localloop_logo_android12.png
+    icon_background_color_dark: "#0F1115"
+  color_dark: "#0F1115"
+  image_dark: assets/images/localloop_logo.png
+  android: true
+  ios: true
+  web: false

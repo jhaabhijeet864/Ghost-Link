@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router/app_router.dart';
 import 'core/state/lifecycle_manager.dart';
+import 'features/splash/presentation/animated_splash_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  AppLifecycleManager().initialize();
   runApp(
-    const ProviderScope(
-      child: LocalLoopApp(),
+    ProviderScope(
+      child: AnimatedSplashScreen(
+        onInit: () async {
+          AppLifecycleManager().initialize();
+        },
+        child: const LocalLoopApp(),
+      ),
     ),
   );
 }

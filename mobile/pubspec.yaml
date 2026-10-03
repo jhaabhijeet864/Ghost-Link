@@ -22,6 +22,7 @@ dependencies:
   uuid: ^4.6.0
   permission_handler: ^13.0.2
   path: ^1.9.1
+  flutter_native_splash: ^2.4.8
 
 dev_dependencies:
   flutter_test:
@@ -33,3 +34,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/localloop_logo.png
+    - assets/images/localloop_logo_android12.png

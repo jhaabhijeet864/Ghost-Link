@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using NSec.Cryptography;
 using Microsoft.Extensions.Logging;
+using LocalLoop.Core.Security;
 
 namespace LocalLoop.Service
 {
@@ -14,10 +15,12 @@ namespace LocalLoop.Service
         private readonly HashSet<string> _pairedKeys = new HashSet<string>();
         private readonly string _storagePath;
         private readonly ILogger<PairingManager> _logger;
+        private readonly ISecretStore _secretStore;
 
-        public PairingManager(ILogger<PairingManager> logger)
+        public PairingManager(ILogger<PairingManager> logger, ISecretStore secretStore)
         {
             _logger = logger;
+            _secretStore = secretStore;
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var dir = Path.Combine(appData, "LocalLoop");
             Directory.CreateDirectory(dir);
@@ -144,7 +147,7 @@ namespace LocalLoop.Service
             {
                 var json = JsonSerializer.Serialize(_pairedKeys);
                 var jsonBytes = System.Text.Encoding.UTF8.GetBytes(json);
-                var encryptedBytes = ProtectedData.Protect(jsonBytes, null, DataProtectionScope.CurrentUser);
+                var encryptedBytes = _secretStore.Protect(jsonBytes);
                 File.WriteAllBytes(_storagePath, encryptedBytes);
             }
             catch (Exception ex)
@@ -160,7 +163,7 @@ namespace LocalLoop.Service
                 if (File.Exists(_storagePath))
                 {
                     var encryptedBytes = File.ReadAllBytes(_storagePath);
-                    var jsonBytes = ProtectedData.Unprotect(encryptedBytes, null, DataProtectionScope.CurrentUser);
+                    var jsonBytes = _secretStore.Unprotect(encryptedBytes);
                     var json = System.Text.Encoding.UTF8.GetString(jsonBytes);
                     var keys = JsonSerializer.Deserialize<HashSet<string>>(json);
                     

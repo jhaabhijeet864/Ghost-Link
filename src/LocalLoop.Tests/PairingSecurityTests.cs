@@ -12,7 +12,7 @@ namespace LocalLoop.Tests
         [Fact]
         public void PairingToken_DoesNotAcceptHardcodedTestToken()
         {
-            var manager = new PairingManager(NullLogger<PairingManager>.Instance);
+            var manager = new PairingManager(NullLogger<PairingManager>.Instance, new LocalLoop.Service.Security.CrossPlatformFileSecretStore());
             manager.SetPairingToken("valid-secret-123");
 
             Assert.True(manager.ValidatePairingSecret("valid-secret-123"));
@@ -22,7 +22,7 @@ namespace LocalLoop.Tests
         [Fact]
         public void PairingToken_InvalidateBurnsSecret()
         {
-            var manager = new PairingManager(NullLogger<PairingManager>.Instance);
+            var manager = new PairingManager(NullLogger<PairingManager>.Instance, new LocalLoop.Service.Security.CrossPlatformFileSecretStore());
             manager.SetPairingToken("one-time-secret");
 
             Assert.True(manager.ValidatePairingSecret("one-time-secret"));
@@ -33,7 +33,7 @@ namespace LocalLoop.Tests
         [Fact]
         public void Challenge_ReplayProtectionRejectsReusedChallenge()
         {
-            var manager = new PairingManager(NullLogger<PairingManager>.Instance);
+            var manager = new PairingManager(NullLogger<PairingManager>.Instance, new LocalLoop.Service.Security.CrossPlatformFileSecretStore());
             
             // Generate Ed25519 keypair
             var algorithm = SignatureAlgorithm.Ed25519;
@@ -58,7 +58,7 @@ namespace LocalLoop.Tests
         [Fact]
         public void ValidateSignatureRaw_VerifiesAuthenticPayloadAndRejectsTampered()
         {
-            var manager = new PairingManager(NullLogger<PairingManager>.Instance);
+            var manager = new PairingManager(NullLogger<PairingManager>.Instance, new LocalLoop.Service.Security.CrossPlatformFileSecretStore());
 
             var algorithm = SignatureAlgorithm.Ed25519;
             using var key = Key.Create(algorithm, new KeyCreationParameters { ExportPolicy = KeyExportPolicies.AllowPlaintextExport });

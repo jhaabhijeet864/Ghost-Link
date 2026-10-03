@@ -234,7 +234,7 @@ namespace LocalLoop.Tests
 
     public class MockWebSocketServer : WebSocketServer
     {
-        public MockWebSocketServer() : base(new PairingManager(NullLogger<PairingManager>.Instance), NullLogger<WebSocketServer>.Instance) { }
+        public MockWebSocketServer() : base(new PairingManager(NullLogger<PairingManager>.Instance, new LocalLoop.Service.Security.CrossPlatformFileSecretStore()), NullLogger<WebSocketServer>.Instance) { }
         
         public override Task StartAsync(int port) => Task.CompletedTask;
         public override Task BroadcastAsync(string message) => Task.CompletedTask;
